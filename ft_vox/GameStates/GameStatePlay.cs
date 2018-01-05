@@ -51,7 +51,7 @@ namespace ft_vox.GameStates
                 {
                     while(true)
                     {
-                        Thread.Sleep(10);
+                        Thread.Sleep(1);
                         
                         var chunks = _world.GetLoadedChunks();
                         var playerPosition = _player.Position;
@@ -65,7 +65,7 @@ namespace ft_vox.GameStates
                                 if ((chunkPositionInLocalCoordinates).LengthSquared < _renderDistance * _renderDistance)
                                 {
                                     var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + playerPos2D.X / 16)), (int)((chunkPositionInLocalCoordinates.Y + playerPos2D.Y / 16)));
-                                    if (!chunks.ContainsKey(chunkPosition))
+                                    if (!chunks.Any(chunk => chunk.Item1.Equals(chunkPosition)))
                                         chunkPositionsThatCouldBeLoaded.Add(chunkPosition);
                                 }
                             }
@@ -74,11 +74,10 @@ namespace ft_vox.GameStates
                         var closestChunkToLoad = orderedChunks.FirstOrDefault();
                         if (closestChunkToLoad != null)
                             _world.GetChunkAt(closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
-
-                        chunks = _world.GetLoadedChunks();
+                        
                         foreach (var chunk in chunks)
                         {
-                            var chunkPos = chunk.Key;
+                            var chunkPos = chunk.Item1;
                             var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8 * (chunkPos.X < 0 ? -1 : 1), chunkPos.Z * 16 + 8 * (chunkPos.Z < 0 ? -1 : 1));
                             if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * _renderDistance)
                                 _world.SetChunkToUnload(chunkPos.X, chunkPos.Z);
@@ -114,7 +113,7 @@ namespace ft_vox.GameStates
             var chunks = _world.GetLoadedChunks();
             foreach(var chunk in chunks)
             {
-                chunk.Value.Draw(_baseShader, _terrainTexture);
+                chunk.Item2.Draw(_baseShader, _terrainTexture);
             }
             _baseShader.Unbind();
 

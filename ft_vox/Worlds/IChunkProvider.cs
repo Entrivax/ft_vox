@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ft_vox.Worlds
 {
@@ -6,7 +7,7 @@ namespace ft_vox.Worlds
     {
         Chunk ProvideChunk(World world, int x, int z);
         Chunk DirectGetChunk(int x, int z);
-        ConcurrentDictionary<ChunkPosition, Chunk> GetLoadedChunks();
+        List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks();
         void SetChunkToUnload(int x, int z);
         void UnloadChunks();
     }

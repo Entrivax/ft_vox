@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace ft_vox.Worlds
 {
@@ -35,11 +37,11 @@ namespace ft_vox.Worlds
             var chunks = _chunkProvider.GetLoadedChunks();
             foreach(var chunk in chunks)
             {
-                chunk.Value.CheckInvalidations(chunk.Key);
+                chunk.Item2.CheckInvalidations(chunk.Item1);
             }
         }
 
-        public ConcurrentDictionary<ChunkPosition, Chunk> GetLoadedChunks()
+        public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks()
         {
             return _chunkProvider.GetLoadedChunks();
         }
