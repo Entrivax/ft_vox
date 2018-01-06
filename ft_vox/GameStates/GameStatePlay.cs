@@ -45,15 +45,15 @@ namespace ft_vox.GameStates
             _player = new Player() { Position = new Vector3(0, 64, 0) };
             _camera = new Camera(new Vector3(0), new Vector3(0), (float)(80f * (Math.PI / 180f)));
             _terrainTexture = TextureManager.Get("terrain.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-            _text = new Text(new Vector2(13, 30), FontManager.Get("glyphs"), _guiShader, "");
+            _text = new Text(new Vector2(5, 0), FontManager.Get("glyphs"), _guiShader, "");
             _renderDistance = 16;
             _loadingThread = new Thread(new ThreadStart(
                 () =>
                 {
-                    while(true)
+                    while (true)
                     {
                         Thread.Sleep(10);
-                        
+
                         var chunks = _world.GetLoadedChunks();
                         var playerPosition = _player.Position;
                         var playerPos2D = playerPosition.Xz;
@@ -63,31 +63,33 @@ namespace ft_vox.GameStates
                             for (int z = -_renderDistance; z <= _renderDistance; z++)
                             {
                                 var chunkPositionInLocalCoordinates = new Vector2(x, z);
-                                if ((chunkPositionInLocalCoordinates).LengthSquared < _renderDistance * _renderDistance)
+                                if ((chunkPositionInLocalCoordinates).LengthFast < _renderDistance)
                                 {
-                                    var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + playerPos2D.X / 16)), (int)((chunkPositionInLocalCoordinates.Y + playerPos2D.Y / 16)));
+                                    var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + playerPos2D.X / 16 + (playerPos2D.X < 0 ? -1 : 0))), (int)((chunkPositionInLocalCoordinates.Y + playerPos2D.Y / 16 + (playerPos2D.Y < 0 ? -1 : 0))));
                                     if (!chunks.Any(chunk => chunk.Item1.Equals(chunkPosition)))
                                         chunkPositionsThatCouldBeLoaded.Add(chunkPosition);
                                 }
                             }
-                        
-                        var orderedChunks = chunkPositionsThatCouldBeLoaded.OrderBy(chunkPosition => (new Vector2(chunkPosition.X * 16 + 8 * (chunkPosition.X < 0 ? -1 : 1), chunkPosition.Z * 16 + 8 * (chunkPosition.Z < 0 ? -1 : 1)) - playerPos2D).LengthSquared).Cast<ChunkPosition?>();
+
+                        var orderedChunks = chunkPositionsThatCouldBeLoaded.OrderBy(chunkPosition => (new Vector2(chunkPosition.X * 16 + 8, chunkPosition.Z * 16 + 8) - playerPos2D).LengthSquared).Cast<ChunkPosition?>();
                         var closestChunkToLoad = orderedChunks.FirstOrDefault();
                         if (closestChunkToLoad != null)
                             _world.GetChunkAt(closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
-                        
+
                         foreach (var chunk in chunks)
                         {
                             var chunkPos = chunk.Item1;
-                            var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8 * (chunkPos.X < 0 ? -1 : 1), chunkPos.Z * 16 + 8 * (chunkPos.Z < 0 ? -1 : 1));
-                            if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * _renderDistance + 16)
+                            var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8, chunkPos.Z * 16 + 8);
+                            if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * 16 + 16)
                                 _world.SetChunkToUnload(chunkPos.X, chunkPos.Z);
                         }
 
                         _world.CheckInvalidations();
                     }
-                }));
-            _loadingThread.IsBackground = true;
+                }))
+            {
+                IsBackground = true
+            };
             _loadingThread.Start();
         }
 
@@ -124,7 +126,7 @@ namespace ft_vox.GameStates
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             _guiShader.SetUniformMatrix4("proj", false, ref _guiProj);
-            view = Matrix4.CreateTranslation(new Vector3(_text.Position));
+            view = Matrix4.CreateTranslation(new Vector3(_text.Position) - new Vector3(_width / 2, _height / 2, 0));
             _guiShader.SetUniformMatrix4("view", false, ref view);
             _text.Draw();
 
@@ -158,7 +160,12 @@ namespace ft_vox.GameStates
 
             if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.P))
                 StaticReferences.ParallelMode = !StaticReferences.ParallelMode;
-            _text.Str = $"Direction : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}";
+            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Plus))
+                _renderDistance += 1;
+            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Minus))
+                _renderDistance = _renderDistance > 1 ? _renderDistance - 1 : _renderDistance;
+            _text.Str = $"Direction : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            _text.Position = new Vector2(5, _height - 5);
         }
     }
 }
