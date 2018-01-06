@@ -8,6 +8,7 @@ using OpenTK.Graphics;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
+using ft_vox.Helpers;
 
 namespace ft_vox.GameStates
 {
@@ -51,7 +52,7 @@ namespace ft_vox.GameStates
                 {
                     while(true)
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(10);
                         
                         var chunks = _world.GetLoadedChunks();
                         var playerPosition = _player.Position;
@@ -79,7 +80,7 @@ namespace ft_vox.GameStates
                         {
                             var chunkPos = chunk.Item1;
                             var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8 * (chunkPos.X < 0 ? -1 : 1), chunkPos.Z * 16 + 8 * (chunkPos.Z < 0 ? -1 : 1));
-                            if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * _renderDistance)
+                            if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * _renderDistance + 16)
                                 _world.SetChunkToUnload(chunkPos.X, chunkPos.Z);
                         }
 
@@ -155,7 +156,9 @@ namespace ft_vox.GameStates
             _world.UnloadChunks();
             _player.Update(deltaTime);
 
-            _text.Str = $"Direction : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}";
+            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.P))
+                StaticReferences.ParallelMode = !StaticReferences.ParallelMode;
+            _text.Str = $"Direction : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}";
         }
     }
 }

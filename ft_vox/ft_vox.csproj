@@ -80,6 +80,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="StaticReferences.cs" />
     <Compile Include="Worlds\BlockSimple.cs" />
     <Compile Include="Worlds\BlockSimpleMultiTextured.cs" />
     <Compile Include="Worlds\BlocksProvider.cs" />

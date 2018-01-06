@@ -47,6 +47,19 @@ namespace ft_vox.Worlds
             else
                 PopulateChunk(newChunk);
             chunkBlock[chunkIndex] = newChunk;
+
+            var chunk = DirectGetChunk(x - 1, z);
+            if (chunk != null)
+                chunk.Invalidate();
+            chunk = DirectGetChunk(x + 1, z);
+            if (chunk != null)
+                chunk.Invalidate();
+            chunk = DirectGetChunk(x, z - 1);
+            if (chunk != null)
+                chunk.Invalidate();
+            chunk = DirectGetChunk(x, z + 1);
+            if (chunk != null)
+                chunk.Invalidate();
             return newChunk;
         }
 
