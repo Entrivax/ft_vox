@@ -18,12 +18,17 @@ namespace ft_vox
             _gameStateManager = gameStateManager;
             
             _gameStateManager.OnGameStateChanged += OnGameStateChanged;
-            _gameStateManager.SetGameState(new GameStatePlay(world));
+            _gameStateManager.SetGameState(new GameStatePlay(gameStateManager, world));
         }
 
         private void OnGameStateChanged(object sender, IGameState oldGameState, IGameState newGameState)
         {
             oldGameState?.OnUnload();
+            if (newGameState == null)
+            {
+                Exit();
+                return;
+            }
             newGameState.OnLoad(Width, Height);
         }
 
@@ -40,16 +45,17 @@ namespace ft_vox
             MouseHelper.Update();
 
             var gameState = _gameStateManager.GetGameState();
-            gameState.Update(e.Time);
-            CursorVisible = gameState.CursorVisible;
+
+            gameState?.Update(e.Time);
+            CursorVisible = gameState?.CursorVisible ?? true;
 
             base.OnUpdateFrame(e);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            Title = $"ft_vox FPS: {1f / e.Time}";
-            _gameStateManager.GetGameState().Draw(e.Time);
+            if (_gameStateManager != null)
+                _gameStateManager.GetGameState()?.Draw(e.Time);
 
             SwapBuffers();
             base.OnRenderFrame(e);

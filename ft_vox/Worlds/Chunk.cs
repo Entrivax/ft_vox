@@ -127,7 +127,8 @@ namespace ft_vox.Worlds
 
             public void ComputeMesh(Chunk chunk, int partNumber, ChunkPosition chunkPosition)
             {
-                Mesh?.Dispose();
+                if (Mesh != null)
+                    StaticReferences.MeshesToClean.Add(Mesh);
                 Mesh = new Mesh();
                 var partNumberMultipliedBy16 = partNumber << 4;
                 if (StaticReferences.ParallelMode)

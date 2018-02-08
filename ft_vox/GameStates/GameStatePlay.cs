@@ -9,6 +9,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using ft_vox.Helpers;
+using ft_vox.GameManaging;
 
 namespace ft_vox.GameStates
 {
@@ -29,16 +30,20 @@ namespace ft_vox.GameStates
         private int _height;
         private Matrix4 _proj;
         private Matrix4 _guiProj;
+        private float _framerate;
 
         private int _renderDistance;
         
         private Text _text;
 
         private Thread _loadingThread;
+        private bool _stopLoading;
+        private IGameStateManager _gameStateManager;
 
-        public GameStatePlay(World world)
+        public GameStatePlay(IGameStateManager gameStateManager, World world)
         {
             _world = world;
+            _gameStateManager = gameStateManager;
 
             _baseShader = ShaderManager.Get("BaseShader");
             _guiShader = ShaderManager.Get("GuiShader");
@@ -50,7 +55,7 @@ namespace ft_vox.GameStates
             _loadingThread = new Thread(new ThreadStart(
                 () =>
                 {
-                    while (true)
+                    while (!_stopLoading)
                     {
                         Thread.Sleep(10);
 
@@ -92,9 +97,10 @@ namespace ft_vox.GameStates
             };
             _loadingThread.Start();
         }
-
+        
         public void Draw(double deltaTime)
         {
+            _framerate = (float)(1 / deltaTime);
             GL.ClearColor(new Color4(0.6f, 0.8f, 0.85f, 1f));
             GL.Enable(EnableCap.DepthTest);
             GL.ClearDepth(1);
@@ -153,9 +159,17 @@ namespace ft_vox.GameStates
         {
         }
 
+        private void CleanMeshes()
+        {
+            Mesh mesh;
+            while (StaticReferences.MeshesToClean.TryTake(out mesh))
+                mesh.Dispose();
+        }
+
         public void Update(double deltaTime)
         {
             _world.UnloadChunks();
+            CleanMeshes();
             _player.Update(deltaTime);
 
             if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.P))
@@ -164,7 +178,13 @@ namespace ft_vox.GameStates
                 _renderDistance += 1;
             if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Minus))
                 _renderDistance = _renderDistance > 1 ? _renderDistance - 1 : _renderDistance;
-            _text.Str = $"Direction : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Escape))
+            {
+                _stopLoading = true;
+                _loadingThread.Join();
+                _gameStateManager.SetGameState(null);
+            }
+            _text.Str = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
             _text.Position = new Vector2(5, _height - 5);
         }
     }

@@ -137,5 +137,16 @@ namespace ft_vox.Worlds
                 chunk.Unload();
             }
         }
+
+        public void Clean()
+        {
+            foreach (var c in _chunkBlocks)
+            {
+                for(int i = 0; i < 8; i++)
+                for(int j = 0; j < 8; j++)
+                    SetChunkToUnload(c.Key.X * 8 + i, c.Key.Z * 8 + j);
+            }
+            UnloadChunks();
+        }
     }
 }

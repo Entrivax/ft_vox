@@ -25,6 +25,7 @@ namespace ft_vox.OpenGL
 
         public void Dispose()
         {
+            Loaded = false;
             ClearVertices();
             VerticesCount = 0;
             _vao?.Dispose();
@@ -69,6 +70,7 @@ namespace ft_vox.OpenGL
 
         public void ClearVertices()
         {
+            Vertices?.Clear();
             Vertices = null;
         }
 

@@ -24,6 +24,7 @@ namespace ft_vox.OpenGL
                 attrib.Set(shader);
             }
 
+            vbo.Unbind();
             Unbind();
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }

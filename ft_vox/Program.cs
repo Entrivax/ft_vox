@@ -1,4 +1,5 @@
 ﻿using ft_vox.GameManaging;
+using ft_vox.OpenGL;
 using ft_vox.Worlds;
 using System;
 using System.Diagnostics;
@@ -17,10 +18,11 @@ namespace ft_vox
                 blocksProvider.RegisterBlock(1, new BlockSimple(blocksProvider, 1));
                 blocksProvider.RegisterBlock(2, new BlockSimple(blocksProvider, 2));
                 blocksProvider.RegisterBlock(3, new BlockSimpleMultiTextured(blocksProvider, 0, 2, 3));
-            var chunkGenerator = new ChunkGeneratorSurface(new Random().Next());
+                var chunkGenerator = new ChunkGeneratorSurface(new Random().Next());
                 var chunkProvider = new ChunkProvider(blocksProvider, chunkGenerator);
                 var world = new World(chunkProvider);
                 new MainWindow(gameStateManager, world).Run(60);
+                chunkProvider.Clean();
             /*}
             catch (Exception exception)
             {

@@ -1,4 +1,5 @@
 ﻿using ft_vox.Helpers;
+using System.Runtime.CompilerServices;
 
 namespace ft_vox.Worlds
 {
@@ -13,13 +14,25 @@ namespace ft_vox.Worlds
         {
             _seed = seed;
             _perlin = new PerlinNoiseOctaveHelper(_seed, 8, 3);
-            _cavePerlin = new PerlinNoiseOctaveHelper(_seed + 45678, 8, 3);
+            _cavePerlin = new PerlinNoiseOctaveHelper(_seed + 45678, 5, 3);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float MAP(float value, float fromValue, float toValue, float fromResult, float toResult)
+        {
+            return (value - fromValue) / (toValue - fromValue) * (toResult - fromResult) + fromResult;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float MIN(float a, float b)
+        {
+            return a < b ? a : b;
         }
 
         public void PopulateChunk(Chunk chunk, ChunkPosition position)
         {
             var frequency = 0.0005f;
-            var caveFrequency = 0.001f;
+            var caveFrequency = 0.003f;
             for (byte x = 0; x < 16; x++)
                 for (byte z = 0; z < 16; z++)
                 {
@@ -32,10 +45,11 @@ namespace ft_vox.Worlds
                     byte height = (byte)perlinHeight;
                     for (byte y = 0; y < height; y++)
                     {
-                        /*var cavePerlinResult = _cavePerlin.Noise(((position.X * 16 + x)) * caveFrequency, y * caveFrequency, ((position.Z * 16 + z)) * caveFrequency);
-                        if (cavePerlinResult <= -0.3f)
+                        var cavePerlinResult = ((float)_cavePerlin.Noise(((position.X * 16 + x)) * caveFrequency, y * caveFrequency, ((position.Z * 16 + z)) * caveFrequency) + 0.5f) * ((y) / 64f);
+                        cavePerlinResult = MIN(MAP(cavePerlinResult, 0f, 0.1f, 0.1f, 0.2f), cavePerlinResult);
+                        if (cavePerlinResult >= 0.09f && cavePerlinResult <= 0.16f)
                             chunk.SetBlockId(x, y, z, 0);
-                        else*/ if (y == height - 1)
+                        else if (y == height - 1)
                             chunk.SetBlockId(x, y, z, 3);
                         else if (y >= height - 4)
                             chunk.SetBlockId(x, y, z, 2);
