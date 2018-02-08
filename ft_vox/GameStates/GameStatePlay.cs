@@ -57,7 +57,6 @@ namespace ft_vox.GameStates
                 {
                     while (!_stopLoading)
                     {
-                        Thread.Sleep(10);
 
                         var chunks = _world.GetLoadedChunks();
                         var playerPosition = _player.Position;
@@ -80,6 +79,8 @@ namespace ft_vox.GameStates
                         var closestChunkToLoad = orderedChunks.FirstOrDefault();
                         if (closestChunkToLoad != null)
                             _world.GetChunkAt(closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
+                        else
+                            Thread.Sleep(1000);
 
                         foreach (var chunk in chunks)
                         {
@@ -184,7 +185,7 @@ namespace ft_vox.GameStates
                 _loadingThread.Join();
                 _gameStateManager.SetGameState(null);
             }
-            _text.Str = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.Forward.X} ; {_player.Forward.Y} ; {_player.Forward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            _text.Str = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
             _text.Position = new Vector2(5, _height - 5);
         }
     }
