@@ -49,9 +49,12 @@ namespace ft_vox.Worlds
                         cavePerlinResult = MIN(MAP(cavePerlinResult, 0f, 0.1f, 0.1f, 0.2f), cavePerlinResult);
                         if (cavePerlinResult >= 0.09f && cavePerlinResult <= 0.16f)
                             chunk.SetBlockId(x, y, z, 0);
-                        else*/ if (y == height - 1)
+                        else*/
+                        if (y == height - 1)
+                            chunk.SetBlockId(x, y, z, 31);
+                        else if (y == height - 2)
                             chunk.SetBlockId(x, y, z, 3);
-                        else if (y >= height - 4)
+                        else if (y >= height - 5)
                             chunk.SetBlockId(x, y, z, 2);
                         else
                             chunk.SetBlockId(x, y, z, 1);

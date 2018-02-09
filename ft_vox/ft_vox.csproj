@@ -85,6 +85,7 @@
     <Compile Include="Worlds\BlockSimple.cs" />
     <Compile Include="Worlds\BlockSimpleMultiTextured.cs" />
     <Compile Include="Worlds\BlocksProvider.cs" />
+    <Compile Include="Worlds\BlockTallGrass.cs" />
     <Compile Include="Worlds\Chunk.cs" />
     <Compile Include="Worlds\ChunkGeneratorSurface.cs" />
     <Compile Include="Worlds\ChunkPosition.cs" />

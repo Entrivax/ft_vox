@@ -13,6 +13,9 @@ vec3 lightDir = vec3(2, -1, 1);
 void main(void)
 {
 //color = vec4(1, 1, 1, 1);
+    vec4 texColor = texture(tex, uv);
+    if (texColor.w < 1)
+        discard;
 	float intensity = 0.6 + clamp((dot(norm, -lightDir) * 0.3), 0, 1);
-	color = texture(tex, uv) * intensity;
+	color = texColor * intensity;
 }
