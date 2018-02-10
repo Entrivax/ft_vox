@@ -21,6 +21,15 @@ namespace ft_vox
             _gameStateManager.SetGameState(new GameStatePlay(gameStateManager, world));
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            Console.WriteLine($"GL Vendor: {GL.GetString(StringName.Vendor)}");
+            Console.WriteLine($"GL Renderer: {GL.GetString(StringName.Renderer)}");
+            Console.WriteLine($"GL Version: {GL.GetString(StringName.Version)}");
+            Console.WriteLine($"GL Shading language version: {GL.GetString(StringName.ShadingLanguageVersion)}");
+            base.OnLoad(e);
+        }
+
         private void OnGameStateChanged(object sender, IGameState oldGameState, IGameState newGameState)
         {
             oldGameState?.OnUnload();

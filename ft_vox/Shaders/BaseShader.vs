@@ -3,9 +3,11 @@
 in vec3 _pos;
 in vec3 _norm;
 in vec2 _uv;
+in vec4 _color;
 
 out vec3 norm;
 out vec2 uv;
+out vec4 recolor;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -17,4 +19,5 @@ void main(void)
 	gl_Position = proj * viewspace;
 	norm = _norm;
 	uv = _uv;
+	recolor = _color;
 }

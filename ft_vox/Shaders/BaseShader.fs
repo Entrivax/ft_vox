@@ -2,6 +2,7 @@
 
 in vec3 norm;
 in vec2 uv;
+in vec4 recolor;
 
 uniform vec3 col;
 uniform sampler2D tex;
@@ -17,5 +18,5 @@ void main(void)
     if (texColor.w < 1)
         discard;
 	float intensity = 0.6 + clamp((dot(norm, -lightDir) * 0.3), 0, 1);
-	color = texColor * intensity;
+	color = texColor * recolor * intensity;
 }

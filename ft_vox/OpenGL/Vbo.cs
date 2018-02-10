@@ -37,7 +37,7 @@ namespace ft_vox.OpenGL
 
         public void SetData(Vertex[] data)
         {
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes)), data, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes)), data, BufferUsageHint.StaticDraw);
         }
 
         public void Dispose()

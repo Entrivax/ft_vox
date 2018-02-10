@@ -1,11 +1,10 @@
 ﻿using ft_vox.GameStates;
-using static ft_vox.GameManaging.GameStateEventHandlers;
 
 namespace ft_vox.GameManaging
 {
     internal interface IGameStateManager
     {
-        event GameStateChangedEventHandler OnGameStateChanged;
+        event GameStateEventHandlers.GameStateChangedEventHandler OnGameStateChanged;
 
         void SetGameState(IGameState gameState);
 

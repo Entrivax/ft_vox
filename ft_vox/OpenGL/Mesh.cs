@@ -60,9 +60,10 @@ namespace ft_vox.OpenGL
             if (_lastUsedShader != shader.ProgramId)
             {
                 _vao.BindVbo(_vbo, shader, new[] {
-                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes, 0),
-                    new VertexAttribute("_norm", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes, Vector3.SizeInBytes),
-                    new VertexAttribute("_uv", 2, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes, Vector3.SizeInBytes * 2),
+                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, 0),
+                    new VertexAttribute("_norm", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, Vector3.SizeInBytes),
+                    new VertexAttribute("_uv", 2, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, Vector3.SizeInBytes * 2),
+                    new VertexAttribute("_color", 4, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, Vector3.SizeInBytes * 2 + Vector2.SizeInBytes),
                 });
                 _lastUsedShader = shader.ProgramId;
             }

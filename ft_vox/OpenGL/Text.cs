@@ -93,8 +93,8 @@ namespace ft_vox.OpenGL
             if (_vao == null)
                 _vao = new Vao<Vertex>();
             _vao.BindVbo(_vbo, Shader, new[] {
-                new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes, 0),
-                new VertexAttribute("_uv", 2, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes, Vector3.SizeInBytes * 2),
+                new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, 0),
+                new VertexAttribute("_uv", 2, VertexAttribPointerType.Float, Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes, Vector3.SizeInBytes * 2),
             });
         }
 
