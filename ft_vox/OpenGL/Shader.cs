@@ -38,6 +38,36 @@ namespace ft_vox.OpenGL
             GL.DeleteShader(fragmentShader);
         }
 
+        public Shader(string vertShader, string geoShader, string fragShader)
+        {
+            _uniformLocations = new Dictionary<string, int>();
+            _attribLocations = new Dictionary<string, int>();
+            var vertexShader = CompileShader(ShaderType.VertexShader, vertShader);
+            var geometryShader = CompileShader(ShaderType.GeometryShader, geoShader);
+            var fragmentShader = CompileShader(ShaderType.FragmentShader, fragShader);
+
+            ProgramId = GL.CreateProgram();
+            GL.AttachShader(ProgramId, vertexShader);
+            GL.AttachShader(ProgramId, geometryShader);
+            GL.AttachShader(ProgramId, fragmentShader);
+
+            GL.LinkProgram(ProgramId);
+
+            var info = GL.GetProgramInfoLog(ProgramId);
+            var currentColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            if (!string.IsNullOrWhiteSpace(info))
+                Console.WriteLine($"GL.LinkProgram had info log: {info}");
+            Console.ForegroundColor = currentColor;
+
+            GL.DetachShader(ProgramId, vertexShader);
+            GL.DetachShader(ProgramId, geometryShader);
+            GL.DetachShader(ProgramId, fragmentShader);
+            GL.DeleteShader(vertexShader);
+            GL.DeleteShader(geometryShader);
+            GL.DeleteShader(fragmentShader);
+        }
+
         private int CompileShader(ShaderType type, string path)
         {
             var shader = GL.CreateShader(type);
@@ -90,6 +120,12 @@ namespace ft_vox.OpenGL
         }
 
         public void SetVertexAttrib1(string attrib, short value)
+        {
+            var location = GetAttribLocation(attrib);
+            GL.VertexAttrib1(location, value);
+        }
+
+        public void SetVertexAttrib1(string attrib, int value)
         {
             var location = GetAttribLocation(attrib);
             GL.VertexAttrib1(location, value);

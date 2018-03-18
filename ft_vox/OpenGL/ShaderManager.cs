@@ -19,6 +19,15 @@ namespace ft_vox.OpenGL
             return shader;
         }
 
+        public static Shader GetWithGeometry(string name)
+        {
+            if (_shaders.ContainsKey(name))
+                return _shaders[name];
+            var shader = new Shader($"Shaders/{name}.vs", $"Shaders/{name}.gs", $"Shaders/{name}.fs");
+            _shaders.Add(name, shader);
+            return shader;
+        }
+
         public static void Remove(string name)
         {
             if (_shaders.ContainsKey(name))

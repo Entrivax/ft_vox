@@ -40,6 +40,11 @@ namespace ft_vox.OpenGL
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector2.SizeInBytes + Vector3.SizeInBytes + Vector3.SizeInBytes + Vector4.SizeInBytes)), data, BufferUsageHint.StaticDraw);
         }
 
+        public void SetData(BlockInfo[] data)
+        {
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes + 4)), data, BufferUsageHint.StaticDraw);
+        }
+
         public void Dispose()
         {
             if (Buffer != -1)

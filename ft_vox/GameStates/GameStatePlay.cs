@@ -45,7 +45,7 @@ namespace ft_vox.GameStates
             _world = world;
             _gameStateManager = gameStateManager;
 
-            _baseShader = ShaderManager.Get("BaseShader");
+            _baseShader = ShaderManager.GetWithGeometry("BaseShader");
             _guiShader = ShaderManager.Get("GuiShader");
             _player = new Player() { Position = new Vector3(0, 64, 0) };
             _camera = new Camera(new Vector3(0), new Vector3(0), (float)(80f * (Math.PI / 180f)));
@@ -57,7 +57,6 @@ namespace ft_vox.GameStates
                 {
                     while (!_stopLoading)
                     {
-
                         var chunks = _world.GetLoadedChunks();
                         var playerPosition = _player.Position;
                         var playerPos2D = playerPosition.Xz;
@@ -165,6 +164,9 @@ namespace ft_vox.GameStates
             Mesh mesh;
             while (StaticReferences.MeshesToClean.TryTake(out mesh))
                 mesh.Dispose();
+            Blocks3D blocks;
+            while (StaticReferences.BlocksToClean.TryTake(out blocks))
+                blocks.Dispose();
         }
 
         public void Update(double deltaTime)

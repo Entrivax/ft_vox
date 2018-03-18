@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace ft_vox.Worlds
 {
     class BlocksProvider : IBlocksProvider
     {
-        private Dictionary<byte, IBlock> _blocks;
+        private IBlock[] _blocks;
 
         public BlocksProvider()
         {
-            _blocks = new Dictionary<byte, IBlock>();
+            _blocks = new IBlock[256];
         }
 
         public IBlock GetBlockForId(byte id)
@@ -21,11 +20,11 @@ namespace ft_vox.Worlds
 
         public void RegisterBlock(byte id, IBlock block)
         {
-            if (_blocks.ContainsKey(id))
+            if (_blocks[id] != null)
             {
                 throw new ArgumentException($"Block id {id} is already registered!");
             }
-            _blocks.Add(id, block);
+            _blocks[id] = block;
         }
     }
 }

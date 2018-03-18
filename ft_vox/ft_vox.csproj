@@ -59,6 +59,8 @@
     <Compile Include="Helpers\PerlinNoiseOctaveHelper.cs" />
     <Compile Include="Helpers\Worm.cs" />
     <Compile Include="MainWindow.cs" />
+    <Compile Include="OpenGL\BlockInfo.cs" />
+    <Compile Include="OpenGL\Blocks3D.cs" />
     <Compile Include="OpenGL\Font.cs" />
     <Compile Include="OpenGL\FontManager.cs" />
     <Compile Include="OpenGL\Framebuffer.cs" />
@@ -104,6 +106,9 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Shaders\BaseShader.gs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Shaders\GuiShader.vs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

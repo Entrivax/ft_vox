@@ -24,6 +24,16 @@ namespace ft_vox.Worlds
             return _chunkProvider.DirectGetChunk(x4, z4)?.GetBlockId((byte)(x - (x4 << 4)), (byte)y, (byte)(z - (z4 << 4))) ?? 0;
         }
 
+        public Chunk[] GetSiblingChunks(ChunkPosition chunkPosition)
+        {
+            var chunks = new Chunk[4];
+            chunks[0] = _chunkProvider.DirectGetChunk(chunkPosition.X - 1, chunkPosition.Z);
+            chunks[1] = _chunkProvider.DirectGetChunk(chunkPosition.X, chunkPosition.Z + 1);
+            chunks[2] = _chunkProvider.DirectGetChunk(chunkPosition.X + 1, chunkPosition.Z);
+            chunks[3] = _chunkProvider.DirectGetChunk(chunkPosition.X, chunkPosition.Z - 1);
+            return chunks;
+        }
+
         public byte GetBlockIdAt(int x, int y, int z)
         {
             var x4 = x >> 4;

@@ -1,5 +1,6 @@
 ﻿using ft_vox.Helpers;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace ft_vox.Worlds
 {
@@ -31,35 +32,50 @@ namespace ft_vox.Worlds
 
         public void PopulateChunk(Chunk chunk, ChunkPosition position)
         {
+            if (!StaticReferences.ParallelMode)
+            {
+                for (byte x = 0; x < 16; x++)
+                    for (byte z = 0; z < 16; z++)
+                    {
+                        PerlinGeneration(chunk, position, x, z);
+                    }
+            }
+            else
+            {
+                Parallel.For(0, 256, (i) =>
+                {
+                    PerlinGeneration(chunk, position, (byte)(i % 16), (byte)(i / 16));
+                });
+            }
+        }
+
+        private void PerlinGeneration(Chunk chunk, ChunkPosition position, byte x, byte z)
+        {
             var frequency = 0.0005f;
             var caveFrequency = 0.003f;
-            for (byte x = 0; x < 16; x++)
-                for (byte z = 0; z < 16; z++)
-                {
-                    var perlinResult = _perlin.Noise(( (position.X * 16 + x)) * frequency, 0, ((position.Z * 16 + z)) * frequency);
-                    var perlinHeight = 60 + perlinResult * 100;
-                    if (perlinHeight < 0)
-                        perlinHeight = 0;
-                    else if (perlinHeight > 255)
-                        perlinHeight = 255;
-                    byte height = (byte)perlinHeight;
-                    for (byte y = 0; y < height; y++)
-                    {
-                        /*var cavePerlinResult = ((float)_cavePerlin.Noise(((position.X * 16 + x)) * caveFrequency, y * caveFrequency, ((position.Z * 16 + z)) * caveFrequency) + 0.5f) * ((y) / 64f);
-                        cavePerlinResult = MIN(MAP(cavePerlinResult, 0f, 0.1f, 0.1f, 0.2f), cavePerlinResult);
-                        if (cavePerlinResult >= 0.09f && cavePerlinResult <= 0.16f)
-                            chunk.SetBlockId(x, y, z, 0);
-                        else*/
-                        if (y == height - 1)
-                            chunk.SetBlockId(x, y, z, 31);
-                        else if (y == height - 2)
-                            chunk.SetBlockId(x, y, z, 3);
-                        else if (y >= height - 5)
-                            chunk.SetBlockId(x, y, z, 2);
-                        else
-                            chunk.SetBlockId(x, y, z, 1);
-                    }
-                }
+            var perlinResult = _perlin.Noise(((position.X * 16 + x)) * frequency, 0, ((position.Z * 16 + z)) * frequency);
+            var perlinHeight = 60 + perlinResult * 100;
+            if (perlinHeight < 0)
+                perlinHeight = 0;
+            else if (perlinHeight > 255)
+                perlinHeight = 255;
+            byte height = (byte)perlinHeight;
+            for (byte y = 0; y < height; y++)
+            {
+                /*var cavePerlinResult = ((float)_cavePerlin.Noise(((position.X * 16 + x)) * caveFrequency, y * caveFrequency, ((position.Z * 16 + z)) * caveFrequency) + 0.5f) * ((y) / 64f);
+                cavePerlinResult = MIN(MAP(cavePerlinResult, 0f, 0.1f, 0.1f, 0.2f), cavePerlinResult);
+                if (cavePerlinResult >= 0.09f && cavePerlinResult <= 0.16f)
+                    chunk.SetBlockId(x, y, z, 0);
+                else*/
+                if (y == height - 1)
+                    chunk.SetBlockId(x, y, z, 31);
+                else if (y == height - 2)
+                    chunk.SetBlockId(x, y, z, 2);
+                else if (y >= height - 5)
+                    chunk.SetBlockId(x, y, z, 3);
+                else
+                    chunk.SetBlockId(x, y, z, 1);
+            }
         }
     }
 }

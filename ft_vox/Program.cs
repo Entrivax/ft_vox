@@ -16,8 +16,8 @@ namespace ft_vox
                 var gameStateManager = new GameStateManager();
                 var blocksProvider = new BlocksProvider();
                 blocksProvider.RegisterBlock(1, new BlockSimple(blocksProvider, 1));
-                blocksProvider.RegisterBlock(2, new BlockSimple(blocksProvider, 2));
-                blocksProvider.RegisterBlock(3, new BlockSimpleMultiTextured(blocksProvider, 0, 2, 3));
+                blocksProvider.RegisterBlock(3, new BlockSimple(blocksProvider, 2));
+                blocksProvider.RegisterBlock(2, new BlockSimpleMultiTextured(blocksProvider, 0, 2, 3));
                 blocksProvider.RegisterBlock(31, new BlockTallGrass(39));
                 var chunkGenerator = new ChunkGeneratorSurface(new Random().Next());
                 var chunkProvider = new ChunkProvider(blocksProvider, chunkGenerator);
