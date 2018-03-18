@@ -267,22 +267,22 @@ namespace ft_vox.Worlds
                 if (blockVisibility == 0)
                 {
                     if ((x > 0 && blocksProvider.GetBlockForId(chunk.GetBlockId((byte)(x - 1), (byte)y, z))?.IsOpaque != true)
-                        || (x == 0 && blocksProvider.GetBlockForId(siblingChunks[0]?.GetBlockId(15, (byte)y, z) ?? 0)?.IsOpaque != true))
+                        || (x == 0 && blocksProvider.GetBlockForId(siblingChunks[0] != null ? siblingChunks[0].GetBlockId(15, (byte)y, z) : (byte)0)?.IsOpaque != true))
                     {
                         blockVisibility |= (int)BlockVisibility.Left;
                     }
                     if ((x < 15 && blocksProvider.GetBlockForId(chunk.GetBlockId((byte)(x + 1), (byte)y, z))?.IsOpaque != true)
-                        || (x == 15 && blocksProvider.GetBlockForId(siblingChunks[2]?.GetBlockId(0, (byte)y, z) ?? 0)?.IsOpaque != true))
+                        || (x == 15 && blocksProvider.GetBlockForId(siblingChunks[2] != null ? siblingChunks[2].GetBlockId(0, (byte)y, z) : (byte)0)?.IsOpaque != true))
                     {
                         blockVisibility |= (int)BlockVisibility.Right;
                     }
                     if ((z > 0 && blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)y, (byte)(z - 1)))?.IsOpaque != true)
-                        || (z == 0 && blocksProvider.GetBlockForId(siblingChunks[3]?.GetBlockId(x, (byte)y, 15) ?? 0)?.IsOpaque != true))
+                        || (z == 0 && blocksProvider.GetBlockForId(siblingChunks[3] != null ? siblingChunks[3].GetBlockId(x, (byte)y, 15) : (byte)0)?.IsOpaque != true))
                     {
                         blockVisibility |= (int)BlockVisibility.Front;
                     }
                     if ((z < 15 && blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)y, (byte)(z + 1)))?.IsOpaque != true)
-                        || (z == 15 && blocksProvider.GetBlockForId(siblingChunks[1]?.GetBlockId(x, (byte)y, 0) ?? 0)?.IsOpaque != true))
+                        || (z == 15 && blocksProvider.GetBlockForId(siblingChunks[1] != null ? siblingChunks[1].GetBlockId(x, (byte)y, 0) : (byte)0)?.IsOpaque != true))
                     {
                         blockVisibility |= (int)BlockVisibility.Back;
                     }
