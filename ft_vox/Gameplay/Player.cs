@@ -14,6 +14,7 @@ namespace ft_vox.Gameplay
         public Vector3 Right { get; private set; }
         private static readonly Vector3 UP = new Vector3(0, 1, 0).Normalized();
         public Vector3 Velocity { get; set; }
+        private Vector3 TargetRotations { get; set; } = Vector3.Zero;
 
         private static readonly double PION2 = Math.PI / 2;
 
@@ -25,7 +26,8 @@ namespace ft_vox.Gameplay
         public void Update(double delta)
         {
             var mouseMovement = MouseHelper.GetMouseMovement();
-            Rotations += new Vector3(mouseMovement.Y * 0.001f, mouseMovement.X * 0.001f, 0);
+            TargetRotations += new Vector3(mouseMovement.Y * 0.001f, mouseMovement.X * 0.001f, 0);
+            Rotations = Vector3.Lerp(Rotations, TargetRotations, 0.25f);
 
             EyeForward = new Vector3((float)Math.Sin(Rotations.Y), -(float)Math.Sin(Rotations.X), -(float)Math.Cos(Rotations.Y));
             Forward = new Vector3((float)Math.Sin(Rotations.Y), 0, -(float)Math.Cos(Rotations.Y));

@@ -71,10 +71,13 @@ namespace ft_vox.OpenGL
             if (!Invalidated)
                 return;
             VerticesCount = Objects.Count;
-            var objs = Objects.ToArray();
-            _vbo.Bind();
-            _vbo.SetData(objs);
-            _vbo.Unbind();
+            if (_vbo != null)
+            {
+                var objs = Objects.ToArray();
+                _vbo.Bind();
+                _vbo.SetData(objs);
+                _vbo.Unbind();
+            }
         }
 
         public void AddObject(DebugObject obj)
