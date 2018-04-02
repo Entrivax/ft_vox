@@ -6,14 +6,16 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.ComponentModel;
+using System.IO;
 
 namespace ft_vox
 {
     internal class MainWindow : GameWindow
     {
-        private IGameStateManager _gameStateManager;
+        private readonly IGameStateManager _gameStateManager;
 
-        public MainWindow(IGameStateManager gameStateManager, World world) : base(800, 600, GraphicsMode.Default, "ft_vox", GameWindowFlags.Default, DisplayDevice.Default, 4, 0, GraphicsContextFlags.Default)
+        public MainWindow(IGameStateManager gameStateManager, World world) : base(1280, 720, GraphicsMode.Default, "ft_vox", GameWindowFlags.Default, DisplayDevice.Default, 4, 0, GraphicsContextFlags.Default)
         {
             _gameStateManager = gameStateManager;
             
@@ -28,6 +30,12 @@ namespace ft_vox
             Console.WriteLine($"GL Version: {GL.GetString(StringName.Version)}");
             Console.WriteLine($"GL Shading language version: {GL.GetString(StringName.ShadingLanguageVersion)}");
             base.OnLoad(e);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _gameStateManager.GetGameState()?.OnUnload();
+            base.OnClosing(e);
         }
 
         private void OnGameStateChanged(object sender, IGameState oldGameState, IGameState newGameState)

@@ -9,7 +9,6 @@ namespace ft_vox.Worlds
         private readonly long _seed;
         private readonly PerlinNoiseOctaveHelper _perlin;
         private readonly PerlinNoiseOctaveHelper _cavePerlin;
-        //private readonly PerlinNoiseHelper _perlin;
 
         public ChunkGeneratorSurface(long seed)
         {
@@ -51,7 +50,7 @@ namespace ft_vox.Worlds
 
         private void PerlinGeneration(Chunk chunk, ChunkPosition position, byte x, byte z)
         {
-            var frequency = 0.0005f;
+            var frequency = 0.00005f;
             var caveFrequency = 0.003f;
             var perlinResult = _perlin.Noise(((position.X * 16 + x)) * frequency, 0, ((position.Z * 16 + z)) * frequency);
             var perlinHeight = 60 + perlinResult * 100;

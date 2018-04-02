@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ft_vox.Frustum;
+using OpenTK;
+using System;
 using System.Collections.Generic;
 
 namespace ft_vox.Worlds
@@ -80,6 +82,11 @@ namespace ft_vox.Worlds
         public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks()
         {
             return _chunkProvider.GetLoadedChunks();
+        }
+
+        public List<Chunk> GetVisibleChunks(Vector3 cameraPosition, Plane[] frustumPlanes)
+        {
+            return _chunkProvider.GetVisibleChunks(cameraPosition, frustumPlanes);
         }
 
         public void SetChunkToUnload(int x, int z)

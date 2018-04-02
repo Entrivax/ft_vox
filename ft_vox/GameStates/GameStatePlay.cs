@@ -1,5 +1,4 @@
 ﻿using ft_vox.OpenGL;
-using OpenTK.Graphics.OpenGL4;
 using ft_vox.Gameplay;
 using ft_vox.Worlds;
 using OpenTK;
@@ -10,6 +9,20 @@ using System.Collections.Generic;
 using System.Linq;
 using ft_vox.Helpers;
 using ft_vox.GameManaging;
+using ft_vox.Frustum;
+using OpenTK.Graphics.ES20;
+using OpenTK.Input;
+using BlendingFactorDest = OpenTK.Graphics.OpenGL4.BlendingFactorDest;
+using BlendingFactorSrc = OpenTK.Graphics.OpenGL4.BlendingFactorSrc;
+using ClearBufferMask = OpenTK.Graphics.OpenGL4.ClearBufferMask;
+using DepthFunction = OpenTK.Graphics.OpenGL4.DepthFunction;
+using EnableCap = OpenTK.Graphics.OpenGL4.EnableCap;
+using FrontFaceDirection = OpenTK.Graphics.OpenGL4.FrontFaceDirection;
+using GL = OpenTK.Graphics.OpenGL4.GL;
+using HintMode = OpenTK.Graphics.OpenGL4.HintMode;
+using HintTarget = OpenTK.Graphics.OpenGL4.HintTarget;
+using TextureMagFilter = OpenTK.Graphics.OpenGL4.TextureMagFilter;
+using TextureMinFilter = OpenTK.Graphics.OpenGL4.TextureMinFilter;
 
 namespace ft_vox.GameStates
 {
@@ -20,10 +33,13 @@ namespace ft_vox.GameStates
         private World _world;
         private Player _player;
         private Camera _camera;
+        private Plane[] _frustum;
+        public static DebugObjects Debug;
 
         private Texture _terrainTexture;
 
         private Shader _baseShader;
+        private Shader _debugShader;
         private Shader _guiShader;
 
         private int _width;
@@ -42,13 +58,19 @@ namespace ft_vox.GameStates
 
         public GameStatePlay(IGameStateManager gameStateManager, World world)
         {
+            Debug = new DebugObjects();
+            
             _world = world;
             _gameStateManager = gameStateManager;
 
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
+            _debugShader = ShaderManager.GetWithGeometry("Debug");
             _guiShader = ShaderManager.Get("GuiShader");
             _player = new Player() { Position = new Vector3(0, 64, 0) };
             _camera = new Camera(new Vector3(0), new Vector3(0), (float)(80f * (Math.PI / 180f)));
+            _frustum = new Plane[6];
+            for (int i = 0; i < _frustum.Length; i++)
+                _frustum[i] = new Plane();
             _terrainTexture = TextureManager.Get("terrain.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             _text = new Text(new Vector2(5, 0), FontManager.Get("glyphs"), _guiShader, "");
             _renderDistance = 16;
@@ -100,6 +122,8 @@ namespace ft_vox.GameStates
         
         public void Draw(double deltaTime)
         {
+            Debug.Clear();
+            
             _framerate = (float)(1 / deltaTime);
             GL.ClearColor(new Color4(0.6f, 0.8f, 0.85f, 1f));
             GL.Enable(EnableCap.DepthTest);
@@ -112,19 +136,44 @@ namespace ft_vox.GameStates
             GL.Disable(EnableCap.PolygonSmooth);
             GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Fastest);
 
-            var view = Matrix4.CreateTranslation(-(_player.Position + new Vector3(0, 1.7f, 0))) * Matrix4.CreateRotationY(_player.Rotations.Y) * Matrix4.CreateRotationX(_player.Rotations.X);
-
-            //view = Matrix4.LookAt(new Vector3(6, 1, 6), new Vector3(8, 0, 8), new Vector3(0, 1, 0));
-
+            var cameraPostition = _player.Position + new Vector3(0, 1.7f, 0);
+            var view = Matrix4.CreateTranslation(-cameraPostition) * Matrix4.CreateRotationY(_player.Rotations.Y) * Matrix4.CreateRotationX(_player.Rotations.X);
+            
+            var mv = (view * _proj);
+            mv.Transpose();
+            _frustum[0].Nums = mv.Row3 + mv.Row0;
+            _frustum[1].Nums = mv.Row3 - mv.Row0;
+            _frustum[2].Nums = mv.Row3 - mv.Row1;
+            _frustum[3].Nums = mv.Row3 + mv.Row1;
+            _frustum[4].Nums = mv.Row2;
+            _frustum[5].Nums = mv.Row3 - mv.Row2;
+            
             _baseShader.Bind();
+            _baseShader.SetUniform3("cameraPosition", ref cameraPostition);
             _baseShader.SetUniformMatrix4("proj", false, ref _proj);
             _baseShader.SetUniformMatrix4("view", false, ref view);
-            var chunks = _world.GetLoadedChunks();
-            foreach(var chunk in chunks)
+            var chunks = _world.GetVisibleChunks(cameraPostition, _frustum);
+            visibleChunks = chunks.Count;
+            gpuBlocks = chunks.Count > 0 ? chunks.Select(c => c.DisplayableBlocks).Aggregate((a, b) => a + b) : 0;
+            foreach (var chunk in chunks)
             {
-                chunk.Item2.Draw(_baseShader, _terrainTexture);
+                chunk.Draw(_baseShader, _terrainTexture);
             }
             _baseShader.Unbind();
+            
+            // START DEBUG DRAWING
+            GL.Disable(EnableCap.DepthTest);
+            
+            _debugShader.Bind();
+            _debugShader.SetUniformMatrix4("proj", false, ref _proj);
+            _debugShader.SetUniformMatrix4("view", false, ref view);
+            Debug.UpdateData();
+            Debug.BindVao(_debugShader);
+            Debug.Draw();
+            _debugShader.Unbind();
+            GL.Enable(EnableCap.DepthTest);
+            
+            // END DEBUG DRAWING
 
             _guiShader.Bind();
             GL.Disable(EnableCap.DepthTest);
@@ -140,6 +189,9 @@ namespace ft_vox.GameStates
             GL.Enable(EnableCap.DepthTest);
             _guiShader.Unbind();
         }
+
+        private int gpuBlocks = 0;
+        int visibleChunks = 0;
 
         public void OnLoad(int width, int height)
         {
@@ -157,6 +209,8 @@ namespace ft_vox.GameStates
 
         public void OnUnload()
         {
+            _stopLoading = true;
+            _loadingThread.Join();
         }
 
         private void CleanMeshes()
@@ -183,11 +237,14 @@ namespace ft_vox.GameStates
                 _renderDistance = _renderDistance > 1 ? _renderDistance - 1 : _renderDistance;
             if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Escape))
             {
-                _stopLoading = true;
-                _loadingThread.Join();
+                OnUnload();
                 _gameStateManager.SetGameState(null);
             }
-            _text.Str = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            
+            var txt = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            txt += $"\nVisible chunks: {visibleChunks}";
+            txt += $"\nVisible blocks: {gpuBlocks}";
+            _text.Str = txt;
             _text.Position = new Vector2(5, _height - 5);
         }
     }

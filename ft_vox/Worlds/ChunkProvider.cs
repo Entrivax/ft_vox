@@ -2,6 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using ft_vox.Frustum;
+using ft_vox.GameStates;
+using ft_vox.OpenGL;
+using OpenTK;
 
 namespace ft_vox.Worlds
 {
@@ -49,17 +53,13 @@ namespace ft_vox.Worlds
             chunkBlock[chunkIndex] = newChunk;
 
             var chunk = DirectGetChunk(x - 1, z);
-            if (chunk != null)
-                chunk.Invalidate();
+            chunk?.Invalidate();
             chunk = DirectGetChunk(x + 1, z);
-            if (chunk != null)
-                chunk.Invalidate();
+            chunk?.Invalidate();
             chunk = DirectGetChunk(x, z - 1);
-            if (chunk != null)
-                chunk.Invalidate();
+            chunk?.Invalidate();
             chunk = DirectGetChunk(x, z + 1);
-            if (chunk != null)
-                chunk.Invalidate();
+            chunk?.Invalidate();
             return newChunk;
         }
 
@@ -143,10 +143,45 @@ namespace ft_vox.Worlds
             foreach (var c in _chunkBlocks)
             {
                 for(int i = 0; i < 8; i++)
-                for(int j = 0; j < 8; j++)
-                    SetChunkToUnload(c.Key.X * 8 + i, c.Key.Z * 8 + j);
+                    for(int j = 0; j < 8; j++)
+                        SetChunkToUnload(c.Key.X * 8 + i, c.Key.Z * 8 + j);
             }
             UnloadChunks();
+        }
+
+        public List<Chunk> GetVisibleChunks(Vector3 cameraPosition, Plane[] frustumPlanes)
+        {
+            var chunks = new List<Chunk>();
+            var aabb = new AABB();
+            foreach (var chunkBlock in _chunkBlocks)
+            {
+                var chunkBlockPosition = chunkBlock.Key;
+                var currentChunks = chunkBlock.Value;
+                
+                aabb.Min = new Vector3(chunkBlockPosition.X * 128, 0, chunkBlockPosition.Z * 128);
+                aabb.Max = new Vector3(chunkBlockPosition.X * 128 + 128, 256, chunkBlockPosition.Z * 128 + 128);
+                        
+                if (!FrustumCollision.IsInFrustum(frustumPlanes, aabb, cameraPosition))
+                    continue;
+                
+                for (int i = 0; i < currentChunks.Length; i++)
+                {
+                    if (currentChunks[i] != null)
+                    {
+                        var x = ((chunkBlockPosition.X + (chunkBlockPosition.X < 0 ? 1 : 0)) * 8 +
+                                (i / 8 * (chunkBlockPosition.X < 0 ? -1 : 1))) * 16;
+                        var z = ((chunkBlockPosition.Z + (chunkBlockPosition.Z < 0 ? 1 : 0)) * 8 +
+                                (i % 8 * (chunkBlockPosition.Z < 0 ? -1 : 1))) * 16;
+                        aabb.Min = new Vector3(x, 0, z);
+                        aabb.Max = new Vector3(x + 16, 256, z + 16);
+                        
+                        if (!FrustumCollision.IsInFrustum(frustumPlanes, aabb, cameraPosition))
+                            continue;
+                        chunks.Add(currentChunks[i]);
+                    }
+                }
+            }
+            return chunks;
         }
     }
 }

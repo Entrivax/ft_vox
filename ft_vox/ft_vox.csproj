@@ -47,6 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Frustum\AABB.cs" />
+    <Compile Include="Frustum\FrustumCollision.cs" />
+    <Compile Include="Frustum\Plane.cs" />
     <Compile Include="GameManaging\GameStateManager.cs" />
     <Compile Include="GameManaging\IGameStateManager.cs" />
     <Compile Include="Gameplay\Camera.cs" />
@@ -61,6 +64,7 @@
     <Compile Include="MainWindow.cs" />
     <Compile Include="OpenGL\BlockInfo.cs" />
     <Compile Include="OpenGL\Blocks3D.cs" />
+    <Compile Include="OpenGL\DebugObjects.cs" />
     <Compile Include="OpenGL\Font.cs" />
     <Compile Include="OpenGL\FontManager.cs" />
     <Compile Include="OpenGL\Framebuffer.cs" />
@@ -133,6 +137,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\terrain.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\Debug.fs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\Debug.gs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\Debug.vs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

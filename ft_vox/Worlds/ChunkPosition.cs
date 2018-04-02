@@ -16,7 +16,6 @@ namespace ft_vox.Worlds
         public override bool Equals(object obj)
         {
             var other = (ChunkPosition)obj;
-            //return other.HashCode == HashCode;
             return other.X == X && other.Z == Z;
         }
         

@@ -51,6 +51,11 @@ namespace ft_vox.OpenGL
                 GL.DeleteBuffers(1, new []{ Buffer });
             Buffer = -1;
         }
+
+        public void SetData(DebugObjects.DebugObject[] data)
+        {
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes + 4)), data, BufferUsageHint.StreamDraw);
+        }
     }
 }
 
