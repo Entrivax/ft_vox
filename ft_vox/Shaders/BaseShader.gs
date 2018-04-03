@@ -13,6 +13,7 @@ layout(triangle_strip, max_vertices = 36) out;
 in int blockIdAndVisibility[];
 
 out vec2 vertexUv;
+out vec3 normal;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -25,6 +26,7 @@ void drawGrassBlock(int blockVisibility) {
 	// TOP FACE
 	if(IS_TOP_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 1, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 1, 0, 0));
 		vertexUv = vec2(0, 0);
 		EmitVertex();
@@ -43,6 +45,7 @@ void drawGrassBlock(int blockVisibility) {
 	// BOTTOM FACE
 	if(IS_BOTTOM_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, -1, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = vec2(3 * uvWidth, 0);
 		EmitVertex();
@@ -61,6 +64,7 @@ void drawGrassBlock(int blockVisibility) {
 	// FRONT FACE
 	if(IS_FRONT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 0, -1);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = vec2(4 * uvWidth, uvWidth);
 		EmitVertex();
@@ -79,6 +83,7 @@ void drawGrassBlock(int blockVisibility) {
 	// BACK FACE
 	if(IS_BACK_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 0, 1);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 1, 0));
 		vertexUv = vec2(3 * uvWidth, uvWidth);
 		EmitVertex();
@@ -97,6 +102,7 @@ void drawGrassBlock(int blockVisibility) {
 	// LEFT FACE
 	if(IS_LEFT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(-1, 0, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = vec2(3 * uvWidth, uvWidth);
 		EmitVertex();
@@ -115,6 +121,7 @@ void drawGrassBlock(int blockVisibility) {
 	// RIGHT FACE
 	if(IS_RIGHT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(1, 0, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 0, 0, 0));
 		vertexUv = vec2(4 * uvWidth, uvWidth);
 		EmitVertex();
@@ -152,6 +159,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// TOP FACE
 	if(IS_TOP_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 1, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 1, 0, 0));
 		vertexUv = topLeftUv;
 		EmitVertex();
@@ -170,6 +178,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// BOTTOM FACE
 	if(IS_BOTTOM_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, -1, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = bottomLeftUv;
 		EmitVertex();
@@ -188,6 +197,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// FRONT FACE
 	if(IS_FRONT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 0, -1);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = bottomRightUv;
 		EmitVertex();
@@ -206,6 +216,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// BACK FACE
 	if(IS_BACK_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(0, 0, 1);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 1, 0));
 		vertexUv = topRightUv;
 		EmitVertex();
@@ -224,6 +235,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// LEFT FACE
 	if(IS_LEFT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(-1, 0, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
 		vertexUv = topRightUv;
 		EmitVertex();
@@ -242,6 +254,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	// RIGHT FACE
 	if(IS_RIGHT_VISIBLE(blockVisibility))
 	{
+	    normal = vec3(1, 0, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 0, 0, 0));
 		vertexUv = bottomRightUv;
 		EmitVertex();
@@ -268,6 +281,8 @@ void drawTallGrassBlock() {
 	vec2 bottomLeftUv = vec2(0, uvWidth) + offset;
 	vec2 bottomMiddleUv = vec2(uvWidth / 2, uvWidth) + offset;
 	vec2 bottomRightUv = vec2(uvWidth, uvWidth) + offset;
+	
+    normal = vec3(0, 1, 0);
 
     gl_Position = projView * (gl_in[0].gl_Position + vec4(0.1464, 0, 0.1464, 0));
     vertexUv = bottomLeftUv;

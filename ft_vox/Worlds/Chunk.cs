@@ -103,7 +103,7 @@ namespace ft_vox.Worlds
             return chunkParts.Select(chunkPart => chunkPart.Blocks).Where(mesh => mesh != null).ToArray();
         }
 
-        public void Draw(Shader shader, Texture texture)
+        public void Draw(Shader shader)
         {
             foreach (var chunkPart in chunkParts)
             {
@@ -112,7 +112,7 @@ namespace ft_vox.Worlds
                 if (!chunkPart.Blocks.Loaded && !chunkPart.Invalidated)
                     chunkPart.Blocks.LoadInGl();
                 chunkPart.Blocks.BindVao(shader);
-                chunkPart.Blocks.Draw(texture);
+                chunkPart.Blocks.Draw();
             }
         }
 

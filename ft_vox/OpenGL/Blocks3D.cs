@@ -74,7 +74,7 @@ namespace ft_vox.OpenGL
             }
         }
         
-        public void Draw(Texture texture)
+        public void Draw()
         {
             if (VerticesCount <= 0)
                 return;
@@ -82,11 +82,9 @@ namespace ft_vox.OpenGL
             {
                 throw new InvalidOperationException("Vao must be created before drawing");
             }
-            TextureManager.Use(texture);
             _vao.Bind();
-            GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             GL.DrawArrays(PrimitiveType.Points, 0, VerticesCount);
-            TextureManager.Disable();
         }
     }
 }

@@ -104,7 +104,7 @@ namespace ft_vox.OpenGL
             Shader.SetUniform3("col", ref color);
             TextureManager.Use(Font.Texture);
             _vao.Bind();
-            GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             GL.DrawArrays(PrimitiveType.Triangles, 0, _trianglesCount);
             _vao.Unbind();
             TextureManager.Disable();

@@ -35,12 +35,15 @@ namespace ft_vox.GameStates
         private Camera _camera;
         private Plane[] _frustum;
         public static DebugObjects Debug;
+        private Mesh _skybox;
 
         private Texture _terrainTexture;
+        private Texture _skyTexture;
 
         private Shader _baseShader;
         private Shader _debugShader;
         private Shader _guiShader;
+        private Shader _skyboxShader;
 
         private int _width;
         private int _height;
@@ -66,14 +69,78 @@ namespace ft_vox.GameStates
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
             _debugShader = ShaderManager.GetWithGeometry("Debug");
             _guiShader = ShaderManager.Get("GuiShader");
+            _skyboxShader = ShaderManager.Get("SkyboxShader");
             _player = new Player() { Position = new Vector3(0, 64, 0) };
             _camera = new Camera(new Vector3(0), new Vector3(0), (float)(80f * (Math.PI / 180f)));
             _frustum = new Plane[6];
             for (int i = 0; i < _frustum.Length; i++)
                 _frustum[i] = new Plane();
             _terrainTexture = TextureManager.Get("terrain.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            _skyTexture = TextureManager.Get("skybox.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             _text = new Text(new Vector2(5, 0), FontManager.Get("glyphs"), _guiShader, "");
             _renderDistance = 16;
+
+            _skybox = new Mesh()
+            {
+                Vertices = new List<Vertex>()
+                {
+                    // FRONT
+                    new Vertex(new Vector3(-10, -10, -10), Vector3.One, new Vector2(1 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, -10, -10), Vector3.One, new Vector2(2 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, 10, -10), Vector3.One, new Vector2(1 / 4f, 1 / 3f)),
+                    
+                    new Vertex(new Vector3(-10, 10, -10), Vector3.One, new Vector2(1 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(10, -10, -10), Vector3.One, new Vector2(2 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, 10, -10), Vector3.One, new Vector2(2 / 4f, 1 / 3f)),
+                    
+                    // RIGHT
+                    new Vertex(new Vector3(10, -10, -10), Vector3.One, new Vector2(2 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, -10, 10), Vector3.One, new Vector2(3 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, 10, -10), Vector3.One, new Vector2(2 / 4f, 1 / 3f)),
+                    
+                    new Vertex(new Vector3(10, 10, -10), Vector3.One, new Vector2(2 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(10, -10, 10), Vector3.One, new Vector2(3 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, 10, 10), Vector3.One, new Vector2(3 / 4f, 1 / 3f)),
+                    
+                    // LEFT
+                    new Vertex(new Vector3(-10, -10, 10), Vector3.One, new Vector2(0 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, -10, -10), Vector3.One, new Vector2(1 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, 10, 10), Vector3.One, new Vector2(0 / 4f, 1 / 3f)),
+                    
+                    new Vertex(new Vector3(-10, 10, 10), Vector3.One, new Vector2(0 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(-10, -10, -10), Vector3.One, new Vector2(1 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, 10, -10), Vector3.One, new Vector2(1 / 4f, 1 / 3f)),
+                    
+                    // TOP
+                    new Vertex(new Vector3(-10, 10, -10), Vector3.One, new Vector2(1 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(10, 10, -10), Vector3.One, new Vector2(2 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(-10, 10, 10), Vector3.One, new Vector2(1 / 4f, 0 / 3f)),
+                    
+                    new Vertex(new Vector3(-10, 10, 10), Vector3.One, new Vector2(1 / 4f, 0 / 3f)),
+                    new Vertex(new Vector3(10, 10, -10), Vector3.One, new Vector2(2 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(10, 10, 10), Vector3.One, new Vector2(2 / 4f, 0 / 3f)),
+                    
+                    // BOTTOM
+                    new Vertex(new Vector3(-10, -10, 10), Vector3.One, new Vector2(1 / 4f, 3 / 3f)),
+                    new Vertex(new Vector3(10, -10, 10), Vector3.One, new Vector2(2 / 4f, 3 / 3f)),
+                    new Vertex(new Vector3(-10, -10, -10), Vector3.One, new Vector2(1 / 4f, 2 / 3f)),
+                    
+                    new Vertex(new Vector3(-10, -10, -10), Vector3.One, new Vector2(1 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, -10, 10), Vector3.One, new Vector2(2 / 4f, 3 / 3f)),
+                    new Vertex(new Vector3(10, -10, -10), Vector3.One, new Vector2(2 / 4f, 2 / 3f)),
+                    
+                    // BACK
+                    new Vertex(new Vector3(10, -10, 10), Vector3.One, new Vector2(3 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, -10, 10), Vector3.One, new Vector2(4 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(10, 10, 10), Vector3.One, new Vector2(3 / 4f, 1 / 3f)),
+                    
+                    new Vertex(new Vector3(10, 10, 10), Vector3.One, new Vector2(3 / 4f, 1 / 3f)),
+                    new Vertex(new Vector3(-10, -10, 10), Vector3.One, new Vector2(4 / 4f, 2 / 3f)),
+                    new Vertex(new Vector3(-10, 10, 10), Vector3.One, new Vector2(4 / 4f, 1 / 3f)),
+                }
+            };
+            _skybox.LoadInGl();
+            
             _loadingThread = new Thread(new ThreadStart(
                 () =>
                 {
@@ -126,7 +193,7 @@ namespace ft_vox.GameStates
             
             _framerate = (float)(1 / deltaTime);
             GL.ClearColor(new Color4(0.6f, 0.8f, 0.85f, 1f));
-            GL.Enable(EnableCap.DepthTest);
+            
             GL.ClearDepth(1);
             GL.DepthFunc(DepthFunction.Less);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -135,8 +202,20 @@ namespace ft_vox.GameStates
 
             GL.Disable(EnableCap.PolygonSmooth);
             GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Fastest);
-
+            
             var cameraPostition = _player.Position + new Vector3(0, 1.7f, 0);
+            GL.Disable(EnableCap.DepthTest);
+            var skyboxView = Matrix4.CreateRotationY(_player.Rotations.Y) *
+                             Matrix4.CreateRotationX(_player.Rotations.X);
+            var skyboxColor = new Vector3(1, 1, 1);
+            _skyboxShader.Bind();
+            _skyboxShader.SetUniformMatrix4("proj", false, ref _proj);
+            _skyboxShader.SetUniformMatrix4("view", false, ref skyboxView);
+            _skyboxShader.SetUniform3("col", ref skyboxColor);
+            _skybox.BindVao(_skyboxShader);
+            _skybox.Draw(_skyTexture);
+            GL.Enable(EnableCap.DepthTest);
+
             var view = Matrix4.CreateTranslation(-cameraPostition) * Matrix4.CreateRotationY(_player.Rotations.Y) * Matrix4.CreateRotationX(_player.Rotations.X);
             
             var mv = (view * _proj);
@@ -153,12 +232,14 @@ namespace ft_vox.GameStates
             _baseShader.SetUniformMatrix4("proj", false, ref _proj);
             _baseShader.SetUniformMatrix4("view", false, ref view);
             var chunks = _world.GetVisibleChunks(cameraPostition, _frustum);
-            visibleChunks = chunks.Count;
-            gpuBlocks = chunks.Count > 0 ? chunks.Select(c => c.DisplayableBlocks).Aggregate((a, b) => a + b) : 0;
+            _visibleChunks = chunks.Count;
+            _gpuBlocks = chunks.Count > 0 ? chunks.Select(c => c.DisplayableBlocks).Aggregate((a, b) => a + b) : 0;
+            TextureManager.Use(_terrainTexture);
             foreach (var chunk in chunks)
             {
-                chunk.Draw(_baseShader, _terrainTexture);
+                chunk.Draw(_baseShader);
             }
+            TextureManager.Disable();
             _baseShader.Unbind();
             
             // START DEBUG DRAWING
@@ -190,8 +271,8 @@ namespace ft_vox.GameStates
             _guiShader.Unbind();
         }
 
-        private int gpuBlocks = 0;
-        int visibleChunks = 0;
+        private int _gpuBlocks = 0;
+        private int _visibleChunks = 0;
 
         public void OnLoad(int width, int height)
         {
@@ -241,9 +322,9 @@ namespace ft_vox.GameStates
                 _gameStateManager.SetGameState(null);
             }
             
-            var txt = $"Framerate: {_framerate.ToString("0.0")}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
-            txt += $"\nVisible chunks: {visibleChunks}";
-            txt += $"\nVisible blocks: {gpuBlocks}";
+            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            txt += $"\nVisible chunks: {_visibleChunks}";
+            txt += $"\nVisible blocks: {_gpuBlocks}";
             _text.Str = txt;
             _text.Position = new Vector2(5, _height - 5);
         }

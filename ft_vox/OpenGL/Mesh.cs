@@ -103,7 +103,7 @@ namespace ft_vox.OpenGL
             }
             TextureManager.Use(texture);
             _vao.Bind();
-            GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             GL.DrawArrays(PrimitiveType.Triangles, 0, VerticesCount);
             TextureManager.Disable();
         }

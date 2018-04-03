@@ -1,13 +1,14 @@
 ﻿#version 400
 
 in vec2 vertexUv;
+in vec3 normal;
 
 uniform vec3 col;
 uniform sampler2D tex;
 
 out vec4 color;
 
-vec3 lightDir = vec3(2, -1, 1);
+vec3 lightDir = vec3(0.7, -1, 0.9);
 
 void main(void)
 {
@@ -15,7 +16,7 @@ void main(void)
     vec4 texColor = texture(tex, vertexUv);
     if (texColor.w < 1)
         discard;
-	//float intensity = 0.6 + clamp((dot(norm, -lightDir) * 0.3), 0, 1);
-	//color = texColor * recolor * intensity;
-    color = texColor;
+	float intensity = 0.6 + clamp((dot(normal, -lightDir) * 0.3), 0, 1);
+	color = texColor * intensity;
+    //color = texColor;
 }
