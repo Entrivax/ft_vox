@@ -54,6 +54,7 @@
     <Compile Include="GameManaging\IGameStateManager.cs" />
     <Compile Include="Gameplay\Camera.cs" />
     <Compile Include="Gameplay\Player.cs" />
+    <Compile Include="Gameplay\Raycast.cs" />
     <Compile Include="GameStates\GameStatePlay.cs" />
     <Compile Include="GameStates\IGameState.cs" />
     <Compile Include="Helpers\KeyboardHelper.cs" />

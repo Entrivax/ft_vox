@@ -49,6 +49,7 @@ namespace ft_vox.Worlds
             var z40 = z >> 4;
             var by = (byte)y;
             var chunk0 = _chunkProvider.ProvideChunk(this, x40, z40);
+            chunk0.SetBlockId((byte)(x & 0xF), (byte)y, (byte)(z & 0xF), blockId);
             chunk0.Invalidate(by);
             if (y > 0)
                 chunk0.Invalidate((byte)(y - 1));

@@ -28,7 +28,7 @@ namespace ft_vox.GameStates
 {
     internal class GameStatePlay : IGameState
     {
-        public bool CursorVisible => true;
+        public bool CursorVisible => false;
 
         private World _world;
         private Player _player;
@@ -177,8 +177,6 @@ namespace ft_vox.GameStates
                             if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * 16 + 16)
                                 _world.SetChunkToUnload(chunkPos.X, chunkPos.Z);
                         }
-
-                        _world.CheckInvalidations();
                     }
                 }))
             {
@@ -190,6 +188,8 @@ namespace ft_vox.GameStates
         public void Draw(double deltaTime)
         {
             Debug.Clear();
+
+            _world.CheckInvalidations();
             
             _framerate = (float)(1 / deltaTime);
             GL.ClearColor(new Color4(0.6f, 0.8f, 0.85f, 1f));
@@ -216,6 +216,23 @@ namespace ft_vox.GameStates
             _skybox.Draw(_skyTexture);
             GL.Enable(EnableCap.DepthTest);
 
+            try
+            {
+                var hitInfo = Raycast.Cast(_world, cameraPostition, _player.EyeForward, 20f);
+                if (hitInfo != null)
+                {
+                    Debug.AddObject(new DebugObjects.DebugObject
+                    {
+                        Type = (int)DebugObjects.DebugObject.DebugObjectType.Star,
+                        Position = new Vector3(hitInfo.X + 0.5f, hitInfo.Y + 0.5f, hitInfo.Z + 0.5f),
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
             var view = Matrix4.CreateTranslation(-cameraPostition) * Matrix4.CreateRotationY(_player.Rotations.Y) * Matrix4.CreateRotationX(_player.Rotations.X);
             
             var mv = (view * _proj);
@@ -320,6 +337,37 @@ namespace ft_vox.GameStates
             {
                 OnUnload();
                 _gameStateManager.SetGameState(null);
+            }
+            if (MouseHelper.IsKeyPressed(MouseButton.Left))
+            {
+                var hitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
+                if (hitInfo != null)
+                {
+                    _world.SetBlockIdAt(hitInfo.X, hitInfo.Y, hitInfo.Z, 0);
+                }
+            }
+            if (MouseHelper.IsKeyPressed(MouseButton.Middle))
+            {
+                var hitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
+                if (hitInfo != null)
+                {
+                    var x = hitInfo.X;
+                    var y = hitInfo.Y;
+                    var z = hitInfo.Z;
+                    if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Left)
+                        x--;
+                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Right)
+                        x++;
+                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Top)
+                        y++;
+                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Bottom)
+                        y--;
+                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Front)
+                        z++;
+                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Back)
+                        z--;
+                    _world.SetBlockIdAt(x, y, z, 1);
+                }
             }
             
             var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";

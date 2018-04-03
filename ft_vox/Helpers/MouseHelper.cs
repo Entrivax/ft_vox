@@ -14,6 +14,11 @@ namespace ft_vox.Helpers
             _mouseState = Mouse.GetState();
         }
 
+        public static bool IsKeyPressed(MouseButton button)
+        {
+            return _mouseState.IsButtonDown(button) && !_lastMouseState.IsButtonDown(button);
+        }
+
         public static Vector2 GetMouseMovement()
         {
             return new Vector2(_mouseState.X - _lastMouseState.X, _mouseState.Y - _lastMouseState.Y);
