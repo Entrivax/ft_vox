@@ -8,6 +8,7 @@ using OpenTK.Graphics.OpenGL4;
 using System;
 using System.ComponentModel;
 using System.IO;
+using OpenTK.Input;
 
 namespace ft_vox
 {
@@ -65,6 +66,10 @@ namespace ft_vox
 
             gameState?.Update(e.Time);
             CursorVisible = gameState?.CursorVisible ?? true;
+            if (KeyboardHelper.IsKeyPressed(Key.F5))
+            {
+                WindowState = WindowState != WindowState.Fullscreen ? WindowState.Fullscreen : WindowState.Normal;
+            }
 
             base.OnUpdateFrame(e);
         }

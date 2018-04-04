@@ -42,7 +42,7 @@ namespace ft_vox.OpenGL
 
         public void SetData(BlockInfo[] data)
         {
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes + 4)), data, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes + 8)), data, BufferUsageHint.StaticDraw);
         }
 
         public void Dispose()

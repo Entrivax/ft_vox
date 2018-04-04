@@ -6,6 +6,7 @@ namespace ft_vox.OpenGL
     {
         public Vector3 Position;
         public int BlockIdAndBlockVisibility;
+        public int HumidityAndTemperature;
     }
 
     public enum BlockVisibility

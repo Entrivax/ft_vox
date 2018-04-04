@@ -2,6 +2,7 @@
 
 in vec2 vertexUv;
 in vec3 normal;
+in vec3 tint;
 
 uniform vec3 col;
 uniform sampler2D tex;
@@ -17,6 +18,6 @@ void main(void)
     if (texColor.w < 1)
         discard;
 	float intensity = 0.6 + clamp((dot(normal, -lightDir) * 0.3), 0, 1);
-	color = texColor * intensity;
+	color = texColor * intensity * vec4(tint, 1);
     //color = texColor;
 }

@@ -12,6 +12,11 @@ namespace ft_vox.Helpers
         private Random _random;
         private int[] _permutations;
 
+        public PerlinNoiseHelper(long seed)
+        {
+            Seed = seed;
+        }
+
         private void ComputePermutations(out int[] permutations)
         {
             permutations = Enumerable.Range(0, 512).Select(i => i / 2).ToArray();

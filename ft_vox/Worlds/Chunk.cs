@@ -1,4 +1,5 @@
-﻿using ft_vox.OpenGL;
+﻿using System;
+using ft_vox.OpenGL;
 using OpenTK;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,8 @@ namespace ft_vox.Worlds
     class Chunk
     {
         byte[] blocks;
+        byte[] temperatures;
+        byte[] humidity;
         byte[] lightMap;
         ChunkPart[] chunkParts;
         protected World world;
@@ -26,6 +29,8 @@ namespace ft_vox.Worlds
         {
             this.world = world;
             blocks = new byte[16 * 16 * 256];
+            temperatures = new byte[16 * 16];
+            humidity = new byte[16 * 16];
             var chunkPartsNumber = 256 / 16;
             chunkParts = new ChunkPart[chunkPartsNumber];
             for (int i = 0; i < chunkPartsNumber; i++)
@@ -35,11 +40,31 @@ namespace ft_vox.Worlds
             this.blocksProvider = blocksProvider;
         }
 
+        protected ChunkBlockInformation GetBlockInformation(byte x, byte y, byte z)
+        {
+            return new ChunkBlockInformation
+            {
+                Id = blocks[(y << 8) + x + (z << 4)],
+                Humidity = humidity[(z << 4) + x],
+                Temperature = temperatures[(z << 4) + x],
+            };
+        }
+
         public byte GetBlockId(byte x, byte y, byte z)
         {
             return blocks[(y << 8) + x + (z << 4)];
         }
 
+        public void SetHumidity(byte x, byte z, byte hum)
+        {
+            humidity[(z << 4) + x] = hum;
+        }
+        
+        public void SetTemperature(byte x, byte z, byte temp)
+        {
+            temperatures[(z << 4) + x] = temp;
+        }
+        
         public void SetBlockId(byte x, byte y, byte z, byte id)
         {
             _invalidated = true;
@@ -128,6 +153,13 @@ namespace ft_vox.Worlds
             blocks = null;
         }
 
+        public struct ChunkBlockInformation
+        {
+            public byte Humidity { get; set; }
+            public byte Temperature { get; set; }
+            public byte Id { get; set; }
+        }
+
         public class ChunkPart
         {
             public bool Invalidated { get; set; }
@@ -156,11 +188,11 @@ namespace ft_vox.Worlds
                         var bInfos = new List<BlockInfo>(64);
                         for (short y = (short)partNumberMultipliedBy16; y < partNumberMultipliedBy16 + 16; y++)
                         {
-                            var blockId = chunk.GetBlockId(x, (byte)y, z);
-                            if (blockId == 0)
+                            var chunkBlockInfo = chunk.GetBlockInformation(x, (byte) y, z);
+                            if (chunkBlockInfo.Id == 0)
                                 continue;
                             BlockInfo? blockInfo;
-                            if (ComputeBlockInfo(chunk, chunkPosition, blocksProvider, siblingChunks, x, z, y, blockId, out blockInfo))
+                            if (ComputeBlockInfo(chunk, chunkPosition, blocksProvider, siblingChunks, x, z, y, chunkBlockInfo, out blockInfo))
                             {
                                 bInfos.Add((BlockInfo)blockInfo);
                             }
@@ -179,12 +211,12 @@ namespace ft_vox.Worlds
                         {
                             for (short y = (short)partNumberMultipliedBy16; y < partNumberMultipliedBy16 + 16; y++)
                             {
-                                var blockId = chunk.GetBlockId(x, (byte)y, z);
-                                if (blockId == 0)
+                                var chunkBlockInfo = chunk.GetBlockInformation(x, (byte) y, z);
+                                if (chunkBlockInfo.Id == 0)
                                     continue;
                                 BlockInfo? blockInfo;
                                 if (ComputeBlockInfo(chunk, chunkPosition, blocksProvider, siblingChunks, x, z, y,
-                                    blockId, out blockInfo))
+                                    chunkBlockInfo, out blockInfo))
                                 {
                                     DisplayableBlocks++;
                                     Blocks.BlockInfos.Add((BlockInfo)blockInfo);                                    
@@ -196,9 +228,9 @@ namespace ft_vox.Worlds
                 Invalidated = false;
             }
 
-            private bool ComputeBlockInfo(Chunk chunk, ChunkPosition chunkPosition, IBlocksProvider blocksProvider, Chunk[] siblingChunks, byte x, byte z, short y, byte blockId, out BlockInfo? blockInfo)
+            private bool ComputeBlockInfo(Chunk chunk, ChunkPosition chunkPosition, IBlocksProvider blocksProvider, Chunk[] siblingChunks, byte x, byte z, short y, ChunkBlockInformation chunkBlockInformation, out BlockInfo? blockInfo)
             {
-                var blockVisibility = chunk.blocksProvider.GetBlockForId(blockId).IsOpaque ? 0 : 0x3F00;
+                var blockVisibility = chunk.blocksProvider.GetBlockForId(chunkBlockInformation.Id).IsOpaque ? 0 : 0x3F00;
                 if (blockVisibility == 0)
                 {
                     if ((x > 0 && blocksProvider.GetBlockForId(chunk.GetBlockId((byte)(x - 1), (byte)y, z))?.IsOpaque != true)
@@ -234,7 +266,8 @@ namespace ft_vox.Worlds
                 {
                     blockInfo = new BlockInfo
                     {
-                        BlockIdAndBlockVisibility = blockVisibility | blockId,
+                        BlockIdAndBlockVisibility = blockVisibility | chunkBlockInformation.Id,
+                        HumidityAndTemperature = chunkBlockInformation.Humidity << 8 | chunkBlockInformation.Temperature,
                         Position = new Vector3((chunkPosition.X << 4) + x, y, (chunkPosition.Z << 4) + z)
                     };
                     return true;

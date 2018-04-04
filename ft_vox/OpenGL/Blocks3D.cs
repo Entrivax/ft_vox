@@ -67,8 +67,9 @@ namespace ft_vox.OpenGL
             if (_lastUsedShader != shader.ProgramId)
             {
                 _vao.BindVbo(_vbo, shader, new[] {
-                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes + 4, 0),
-                    new VertexAttribute("_blockIdAndVisibility", 1, VertexAttribIntegerType.Int, Vector3.SizeInBytes + 4, Vector3.SizeInBytes),
+                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes + 8, 0),
+                    new VertexAttribute("_blockIdAndVisibility", 1, VertexAttribIntegerType.Int, Vector3.SizeInBytes + 8, Vector3.SizeInBytes),
+                    new VertexAttribute("_humidityAndTemperature", 1, VertexAttribIntegerType.Int, Vector3.SizeInBytes + 8, Vector3.SizeInBytes + 4),
                 });
                 _lastUsedShader = shader.ProgramId;
             }

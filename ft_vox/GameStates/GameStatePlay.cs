@@ -346,7 +346,7 @@ namespace ft_vox.GameStates
                     _world.SetBlockIdAt(hitInfo.X, hitInfo.Y, hitInfo.Z, 0);
                 }
             }
-            if (MouseHelper.IsKeyPressed(MouseButton.Middle))
+            if (MouseHelper.IsKeyPressed(MouseButton.Right))
             {
                 var hitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
                 if (hitInfo != null)
@@ -370,7 +370,7 @@ namespace ft_vox.GameStates
                 }
             }
             
-            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X} ; {_player.EyeForward.Y} ; {_player.EyeForward.Z}\nPosition: {_player.Position.X} ; {_player.Position.Y} ; {_player.Position.Z}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
             _text.Str = txt;

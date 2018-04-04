@@ -15,7 +15,7 @@
             _perlins = new PerlinNoiseHelper[octaves];
             for(int i = 0; i < octaves; i++)
             {
-                _perlins[i] = new PerlinNoiseHelper() { Seed = prevSeed };
+                _perlins[i] = new PerlinNoiseHelper(prevSeed);
                 prevSeed = _perlins[i].GetNextSeed();
             }
         }
