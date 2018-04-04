@@ -76,8 +76,7 @@ namespace ft_vox
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            if (_gameStateManager != null)
-                _gameStateManager.GetGameState()?.Draw(e.Time);
+            _gameStateManager.GetGameState()?.Draw(e.Time);
 
             SwapBuffers();
             base.OnRenderFrame(e);

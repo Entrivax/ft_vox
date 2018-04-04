@@ -71,10 +71,8 @@
     <Compile Include="OpenGL\Framebuffer.cs" />
     <Compile Include="OpenGL\Material.cs" />
     <Compile Include="OpenGL\Mesh.cs" />
-    <Compile Include="OpenGL\Object3D.cs" />
     <Compile Include="OpenGL\Shader.cs" />
     <Compile Include="OpenGL\ShaderManager.cs" />
-    <Compile Include="OpenGL\SpriteSheet.cs" />
     <Compile Include="OpenGL\Text.cs" />
     <Compile Include="OpenGL\Texture.cs" />
     <Compile Include="OpenGL\TextureManager.cs" />
@@ -91,9 +89,7 @@
     </Compile>
     <Compile Include="StaticReferences.cs" />
     <Compile Include="Worlds\BlockSimple.cs" />
-    <Compile Include="Worlds\BlockSimpleMultiTextured.cs" />
     <Compile Include="Worlds\BlocksProvider.cs" />
-    <Compile Include="Worlds\BlockTallGrass.cs" />
     <Compile Include="Worlds\Chunk.cs" />
     <Compile Include="Worlds\ChunkGeneratorSurface.cs" />
     <Compile Include="Worlds\ChunkPosition.cs" />

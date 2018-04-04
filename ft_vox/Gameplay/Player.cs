@@ -18,11 +18,6 @@ namespace ft_vox.Gameplay
 
         private static readonly double PION2 = Math.PI / 2;
 
-        public Player()
-        {
-            Position = new Vector3(4, 1, 4);
-        }
-
         public void Update(double delta)
         {
             var mouseMovement = MouseHelper.GetMouseMovement();

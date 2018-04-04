@@ -70,7 +70,7 @@ namespace ft_vox.GameStates
             _debugShader = ShaderManager.GetWithGeometry("Debug");
             _guiShader = ShaderManager.Get("GuiShader");
             _skyboxShader = ShaderManager.Get("SkyboxShader");
-            _player = new Player() { Position = new Vector3(0, 64, 0) };
+            _player = new Player() { Position = new Vector3(0, 90, 0) };
             _camera = new Camera(new Vector3(0), new Vector3(0), (float)(80f * (Math.PI / 180f)));
             _frustum = new Plane[6];
             for (int i = 0; i < _frustum.Length; i++)

@@ -88,7 +88,7 @@ namespace ft_vox.Worlds
                     {
                         if (y == height - 1)
                         {
-                            if (rand.Next(10) == 0)
+                            if (y > 0 && chunk.GetBlockId(x, (byte)(y - 1), z) != 0 && rand.Next(10) == 0)
                                 chunk.SetBlockId(x, y, z, 31);
                         }
                         else if (y == height - 2)
