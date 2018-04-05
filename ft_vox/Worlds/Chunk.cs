@@ -2,6 +2,8 @@
 using ft_vox.OpenGL;
 using OpenTK;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,7 +18,6 @@ namespace ft_vox.Worlds
         ChunkPart[] chunkParts;
         protected World world;
         protected IBlocksProvider blocksProvider;
-        private bool _invalidated;
         public int DisplayableBlocks
         {
             get
@@ -67,27 +68,23 @@ namespace ft_vox.Worlds
         
         public void SetBlockId(byte x, byte y, byte z, byte id)
         {
-            _invalidated = true;
             chunkParts[y >> 4].Invalidated = true;
             blocks[(y << 8) + x + (z << 4)] = id;
         }
 
         public void Invalidate(byte y)
         {
-            _invalidated = true;
             chunkParts[y >> 4].Invalidated = true;
         }
 
         public void Invalidate()
         {
-            _invalidated = true;
             for (int i = 0; i < chunkParts.Length; i++)
                 chunkParts[i].Invalidated = true;
         }
 
         private void SetSunlight(byte x, byte y, byte z, byte value)
         {
-            _invalidated = true;
             chunkParts[y >> 4].Invalidated = true;
             var loc = (y << 8) + x + (z << 4);
             lightMap[loc] = (byte)((lightMap[loc] & 0xf) | (value << 4));
@@ -100,7 +97,6 @@ namespace ft_vox.Worlds
 
         private void SetTorchlight(byte x, byte y, byte z, byte value)
         {
-            _invalidated = true;
             chunkParts[y >> 4].Invalidated = true;
             var loc = (y << 8) + x + (z << 4);
             lightMap[loc] = (byte)((lightMap[loc] & 0xf0) | value);
@@ -113,14 +109,13 @@ namespace ft_vox.Worlds
 
         public void CheckInvalidations(ChunkPosition chunkPosition)
         {
-            if (_invalidated)
+            if (chunkParts.Any(cp => cp.Invalidated))
                 for(int i = 0; i < chunkParts.Length; i++)
                 {
                     var chunkPart = chunkParts[i];
                     if (chunkPart.Invalidated)
                         chunkPart.ComputeBlocks(this, i, chunkPosition, blocksProvider, world);
                 }
-            _invalidated = false;
         }
 
         public Blocks3D[] GetMeshes()
@@ -151,6 +146,13 @@ namespace ft_vox.Worlds
             }
             chunkParts = null;
             blocks = null;
+        }
+
+        public override string ToString()
+        {
+            return $"Non air blocks: {blocks.Count(b => b != 0)}\n" +
+                   "Chunk parts:\n" +
+                   $"{chunkParts.Select(cp => cp != null ? $"  - Invalidated: {cp.Invalidated} ; Blocks on GPU: {cp.DisplayableBlocks} ; Is Blocks3D null?: {cp.Blocks == null}" : "").Aggregate((a,b) => $"{a}\n{b}")}";
         }
 
         public struct ChunkBlockInformation

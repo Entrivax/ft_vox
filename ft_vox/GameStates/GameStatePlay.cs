@@ -223,7 +223,7 @@ namespace ft_vox.GameStates
                 {
                     Debug.AddObject(new DebugObjects.DebugObject
                     {
-                        Type = (int)DebugObjects.DebugObject.DebugObjectType.Star,
+                        Type = (int)DebugObjects.DebugObject.DebugObjectType.Landmark,
                         Position = new Vector3(hitInfo.X + 0.5f, hitInfo.Y + 0.5f, hitInfo.Z + 0.5f),
                     });
                 }
@@ -321,6 +321,8 @@ namespace ft_vox.GameStates
                 blocks.Dispose();
         }
 
+        private Raycast.HitInfo _lastHitInfo = null;
+
         public void Update(double deltaTime)
         {
             _world.UnloadChunks();
@@ -369,10 +371,17 @@ namespace ft_vox.GameStates
                     _world.SetBlockIdAt(x, y, z, 1);
                 }
             }
+
+            if (MouseHelper.IsKeyPressed(MouseButton.Middle))
+            {
+                _lastHitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
+            }
             
             var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
+            if (_lastHitInfo != null)
+                txt += "\n" + _lastHitInfo.Chunk.ToString();
             _text.Str = txt;
             _text.Position = new Vector2(5, _height - 5);
         }

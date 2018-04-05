@@ -19,6 +19,11 @@ namespace ft_vox.Worlds
             return _chunkProvider.ProvideChunk(this, x, z);
         }
 
+        public Chunk GetChunkAtWorldCoordinates(int x, int z)
+        {
+            return _chunkProvider.DirectGetChunk(x >> 4, z >> 4);
+        }
+
         public byte GetBlockIdAtForCurrentlyLoadedChunks(int x, int y, int z)
         {
             var x4 = x >> 4;

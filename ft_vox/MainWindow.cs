@@ -18,6 +18,7 @@ namespace ft_vox
 
         public MainWindow(IGameStateManager gameStateManager, World world) : base(1280, 720, GraphicsMode.Default, "ft_vox", GameWindowFlags.Default, DisplayDevice.Default, 4, 0, GraphicsContextFlags.Default)
         {
+            VSync = VSyncMode.Off;
             _gameStateManager = gameStateManager;
             
             _gameStateManager.OnGameStateChanged += OnGameStateChanged;

@@ -12,6 +12,7 @@ namespace ft_vox.Gameplay
             public int Y;
             public int Z;
             public FaceEnum Face;
+            public Chunk Chunk;
 
             public enum FaceEnum
             {
@@ -88,6 +89,7 @@ namespace ft_vox.Gameplay
                 }
                 if (world.GetBlockIdAtForCurrentlyLoadedChunks((int)x, (int)y, (int)z) != 0)
                 {
+                    hitInfo.Chunk = world.GetChunkAtWorldCoordinates((int)x, (int)z);
                     hitInfo.X = (int)x;
                     hitInfo.Y = (int)y;
                     hitInfo.Z = (int)z;
