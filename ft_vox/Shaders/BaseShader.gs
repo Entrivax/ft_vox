@@ -327,10 +327,10 @@ void drawClassicBlock(int id, int blockVisibility) {
 		vertexUv = bottomRightUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 1, 0, 0));
-		vertexUv = bottomLeftUv;
+		vertexUv = topRightUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 0, 0, 0));
-		vertexUv = topRightUv;
+		vertexUv = bottomLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 1, 0, 0));
 		vertexUv = topLeftUv;
@@ -343,7 +343,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	{
 	    normal = vec3(0, 0, 1);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 1, 0));
-		vertexUv = topRightUv;
+		vertexUv = bottomLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 0, 1, 0));
 		vertexUv = bottomRightUv;
@@ -352,7 +352,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 		vertexUv = topLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 1, 1, 0));
-		vertexUv = bottomLeftUv;
+		vertexUv = topRightUv;
 		EmitVertex();
 		EndPrimitive();
 	}
@@ -362,7 +362,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 	{
 	    normal = vec3(-1, 0, 0);
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 0, 0));
-		vertexUv = topRightUv;
+		vertexUv = bottomLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 0, 1, 0));
 		vertexUv = bottomRightUv;
@@ -371,7 +371,7 @@ void drawClassicBlock(int id, int blockVisibility) {
 		vertexUv = topLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(0, 1, 1, 0));
-		vertexUv = bottomLeftUv;
+		vertexUv = topRightUv;
 		EmitVertex();
 		EndPrimitive();
 	}
@@ -384,10 +384,10 @@ void drawClassicBlock(int id, int blockVisibility) {
 		vertexUv = bottomRightUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 1, 0, 0));
-		vertexUv = bottomLeftUv;
+		vertexUv = topRightUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 0, 1, 0));
-		vertexUv = topRightUv;
+		vertexUv = bottomLeftUv;
 		EmitVertex();
 		gl_Position = projView * (gl_in[0].gl_Position + vec4(1, 1, 1, 0));
 		vertexUv = topLeftUv;
