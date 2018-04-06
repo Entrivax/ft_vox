@@ -2,6 +2,8 @@
 using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using ft_vox.Gameplay;
 
 namespace ft_vox.Worlds
 {
@@ -88,6 +90,11 @@ namespace ft_vox.Worlds
         public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks()
         {
             return _chunkProvider.GetLoadedChunks();
+        }
+
+        public bool Cast(Vector3 origin, Vector3 direction, float maxDistance, out HitInfo hitInfo)
+        {
+            return _chunkProvider.Cast(this, origin, direction, maxDistance, out hitInfo);
         }
 
         public List<Chunk> GetVisibleChunks(Vector3 cameraPosition, Plane[] frustumPlanes)

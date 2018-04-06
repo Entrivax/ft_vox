@@ -23,8 +23,9 @@ namespace ft_vox.Gameplay
             var mouseMovement = MouseHelper.GetMouseMovement();
             TargetRotations += new Vector3(mouseMovement.Y * 0.001f, mouseMovement.X * 0.001f, 0);
             Rotations = Vector3.Lerp(Rotations, TargetRotations, 0.25f);
-
-            EyeForward = new Vector3((float)Math.Sin(Rotations.Y), -(float)Math.Sin(Rotations.X), -(float)Math.Cos(Rotations.Y));
+            
+            EyeForward = ((Matrix4.CreateRotationY(Rotations.Y) *
+                         Matrix4.CreateRotationX(Rotations.X)) * new Vector4(0, 0, -1, 0)).Xyz;
             Forward = new Vector3((float)Math.Sin(Rotations.Y), 0, -(float)Math.Cos(Rotations.Y));
             Right = new Vector3((float)Math.Sin(Rotations.Y + PION2), 0, -(float)Math.Cos(Rotations.Y + PION2));
 

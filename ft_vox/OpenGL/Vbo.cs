@@ -54,7 +54,12 @@ namespace ft_vox.OpenGL
 
         public void SetData(DebugObjects.DebugObject[] data)
         {
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes + 4)), data, BufferUsageHint.StreamDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes * 2 + 4)), data, BufferUsageHint.StreamDraw);
+        }
+
+        public void SetData(AABBObjects.AABBObject[] data)
+        {
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * (Vector3.SizeInBytes * 2 + Vector4.SizeInBytes)), data, BufferUsageHint.StreamDraw);
         }
     }
 }

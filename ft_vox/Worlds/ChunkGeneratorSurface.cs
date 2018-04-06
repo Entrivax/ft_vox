@@ -36,6 +36,12 @@ namespace ft_vox.Worlds
         {
             return a < b ? a : b;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float MAX(float a, float b)
+        {
+            return a > b ? a : b;
+        }
 
         public void PopulateChunk(Chunk chunk, ChunkPosition position)
         {
@@ -64,10 +70,10 @@ namespace ft_vox.Worlds
             var moutainFrequency = 0.00005f;
             var caveFrequency = 0.003f;
             var temperatureFrequency = 0.0003f;
-            var temperature = (byte)MAP((float)_temperaturePerlin.Noise((position.X * 16 + x) * temperatureFrequency, 0, (position.Z * 16 + z) * temperatureFrequency), -0.5f, 0.5f, 0, 255);
+            var temperature = (byte)MAX(MIN(MAP((float)_temperaturePerlin.Noise((position.X * 16 + x) * temperatureFrequency, 0, (position.Z * 16 + z) * temperatureFrequency), -0.5f, 0.5f, 0, 255), 255), 0);
             chunk.SetTemperature(x, z, temperature);
             var humidityFrequency = 0.0003f;
-            var humidity = (byte)MAP((float)_humidityPerlin.Noise((position.X * 16 + x) * humidityFrequency, 0, (position.Z * 16 + z) * humidityFrequency), -0.5f, 0.5f, 0, 255);
+            var humidity = (byte)MAX(MIN(MAP((float)_humidityPerlin.Noise((position.X * 16 + x) * humidityFrequency, 0, (position.Z * 16 + z) * humidityFrequency), -0.5f, 0.5f, 0, 255), 255), 0);
             chunk.SetHumidity(x, z, humidity);
             
             var perlinResult = _perlin.Noise(((position.X * 16 + x)) * frequency, 0, ((position.Z * 16 + z)) * frequency);

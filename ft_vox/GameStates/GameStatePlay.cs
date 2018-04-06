@@ -36,10 +36,14 @@ namespace ft_vox.GameStates
         private Plane[] _frustum;
         public static DebugObjects Debug;
         private Mesh _skybox;
+        private Sprite _crosshair;
+        private AABBObjects _selectedBlocks;
 
         private Texture _terrainTexture;
+        private Texture _iconsTexture;
         private Texture _skyTexture;
 
+        private Shader _aabbShader;
         private Shader _baseShader;
         private Shader _debugShader;
         private Shader _guiShader;
@@ -66,6 +70,7 @@ namespace ft_vox.GameStates
             _world = world;
             _gameStateManager = gameStateManager;
 
+            _aabbShader = ShaderManager.GetWithGeometry("AabbShader");
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
             _debugShader = ShaderManager.GetWithGeometry("Debug");
             _guiShader = ShaderManager.Get("GuiShader");
@@ -76,9 +81,15 @@ namespace ft_vox.GameStates
             for (int i = 0; i < _frustum.Length; i++)
                 _frustum[i] = new Plane();
             _terrainTexture = TextureManager.Get("terrain.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            _iconsTexture = TextureManager.Get("icons.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             _skyTexture = TextureManager.Get("skybox.png", TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             _text = new Text(new Vector2(5, 0), FontManager.Get("glyphs"), _guiShader, "");
             _renderDistance = 16;
+
+            _crosshair = new Sprite(new Vector2(36, 36), new Vector2(0), new Vector2(16 / 256f), _guiShader);
+            _crosshair.UploadInGl();
+            
+            _selectedBlocks = new AABBObjects();
 
             _skybox = new Mesh()
             {
@@ -188,6 +199,7 @@ namespace ft_vox.GameStates
         public void Draw(double deltaTime)
         {
             Debug.Clear();
+            _selectedBlocks.Clear();
 
             _world.CheckInvalidations();
             
@@ -218,13 +230,14 @@ namespace ft_vox.GameStates
 
             try
             {
-                var hitInfo = Raycast.Cast(_world, cameraPostition, _player.EyeForward, 20f);
-                if (hitInfo != null)
+                HitInfo hitInfo;
+                if (_world.Cast(cameraPostition, _player.EyeForward, 20f, out hitInfo))
                 {
-                    Debug.AddObject(new DebugObjects.DebugObject
+                    _selectedBlocks.AddAABB(new AABBObjects.AABBObject
                     {
-                        Type = (int)DebugObjects.DebugObject.DebugObjectType.Landmark,
-                        Position = new Vector3(hitInfo.X + 0.5f, hitInfo.Y + 0.5f, hitInfo.Z + 0.5f),
+                        Position = new Vector3(hitInfo.X - 0.001f, hitInfo.Y - 0.001f, hitInfo.Z - 0.001f),
+                        Position2 = new Vector3(hitInfo.X + 1.001f, hitInfo.Y + 1.001f, hitInfo.Z + 1.001f),
+                        Color = new Vector4(0, 0, 0, 0.4f),
                     });
                 }
             }
@@ -259,6 +272,16 @@ namespace ft_vox.GameStates
             TextureManager.Disable();
             _baseShader.Unbind();
             
+            GL.Enable(EnableCap.Blend);
+            _aabbShader.Bind();
+            _aabbShader.SetUniformMatrix4("proj", false, ref _proj);
+            _aabbShader.SetUniformMatrix4("view", false, ref view);
+            _selectedBlocks.UpdateData();
+            _selectedBlocks.BindVao(_aabbShader);
+            _selectedBlocks.Draw();
+            _aabbShader.Unbind();
+            GL.Disable(EnableCap.Blend);
+            
             // START DEBUG DRAWING
             GL.Disable(EnableCap.DepthTest);
             
@@ -282,6 +305,12 @@ namespace ft_vox.GameStates
             view = Matrix4.CreateTranslation(new Vector3(_text.Position) - new Vector3(_width / 2, _height / 2, 0));
             _guiShader.SetUniformMatrix4("view", false, ref view);
             _text.Draw();
+            
+            TextureManager.Use(_iconsTexture);
+            view = Matrix4.CreateTranslation(-new Vector3(_crosshair.Size.X / 2, _crosshair.Size.Y / 2, 0));
+            _guiShader.SetUniformMatrix4("view", false, ref view);
+            _crosshair.Draw();
+            TextureManager.Disable();
 
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
@@ -321,8 +350,6 @@ namespace ft_vox.GameStates
                 blocks.Dispose();
         }
 
-        private Raycast.HitInfo _lastHitInfo = null;
-
         public void Update(double deltaTime)
         {
             _world.UnloadChunks();
@@ -342,46 +369,39 @@ namespace ft_vox.GameStates
             }
             if (MouseHelper.IsKeyPressed(MouseButton.Left))
             {
-                var hitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
-                if (hitInfo != null)
+                HitInfo hitInfo;
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
                 {
                     _world.SetBlockIdAt(hitInfo.X, hitInfo.Y, hitInfo.Z, 0);
                 }
             }
             if (MouseHelper.IsKeyPressed(MouseButton.Right))
             {
-                var hitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
-                if (hitInfo != null)
+                HitInfo hitInfo;
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
                 {
                     var x = hitInfo.X;
                     var y = hitInfo.Y;
                     var z = hitInfo.Z;
-                    if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Left)
+                    if (hitInfo.Face == HitInfo.FaceEnum.Left)
                         x--;
-                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Right)
+                    else if (hitInfo.Face == HitInfo.FaceEnum.Right)
                         x++;
-                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Top)
+                    else if (hitInfo.Face == HitInfo.FaceEnum.Top)
                         y++;
-                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Bottom)
+                    else if (hitInfo.Face == HitInfo.FaceEnum.Bottom)
                         y--;
-                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Front)
+                    else if (hitInfo.Face == HitInfo.FaceEnum.Front)
                         z++;
-                    else if (hitInfo.Face == Raycast.HitInfo.FaceEnum.Back)
+                    else if (hitInfo.Face == HitInfo.FaceEnum.Back)
                         z--;
                     _world.SetBlockIdAt(x, y, z, 1);
                 }
-            }
-
-            if (MouseHelper.IsKeyPressed(MouseButton.Middle))
-            {
-                _lastHitInfo = Raycast.Cast(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f);
             }
             
             var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
-            if (_lastHitInfo != null)
-                txt += "\n" + _lastHitInfo.Chunk.ToString();
             _text.Str = txt;
             _text.Position = new Vector2(5, _height - 5);
         }

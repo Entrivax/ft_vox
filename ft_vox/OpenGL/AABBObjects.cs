@@ -5,36 +5,29 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace ft_vox.OpenGL
 {
-    public class DebugObjects : IDisposable
+    public class AABBObjects : IDisposable
     {
-        public struct DebugObject
+        public struct AABBObject
         {
             public Vector3 Position;
             public Vector3 Position2;
-            public int Type;
-
-            public enum DebugObjectType
-            {
-                Star = 0,
-                Landmark = 1,
-                AABB = 2,
-            }
+            public Vector4 Color;
         }
-        
-        public List<DebugObject> Objects;
+
+        private List<AABBObject> Objects;
         public bool Loaded { get; private set; }
         public bool Invalidated { get; private set; }
 
         private int VerticesCount = -1;
-        private Vao<DebugObject> _vao;
+        private Vao<AABBObject> _vao;
         private Vbo _vbo;
         private int _lastUsedShader;
 
-        public DebugObjects()
+        public AABBObjects()
         {
             Loaded = false;
             Invalidated = true;
-            Objects = new List<DebugObject>();
+            Objects = new List<AABBObject>();
         }
 
         public void Dispose()
@@ -82,7 +75,7 @@ namespace ft_vox.OpenGL
             }
         }
 
-        public void AddObject(DebugObject obj)
+        public void AddAABB(AABBObject obj)
         {
             Invalidated = true;
             Objects.Add(obj);
@@ -99,13 +92,13 @@ namespace ft_vox.OpenGL
             if (VerticesCount <= 0)
                 return;
             if (_vao == null)
-                _vao = new Vao<DebugObject>();
+                _vao = new Vao<AABBObject>();
             if (_lastUsedShader != shader.ProgramId)
             {
                 _vao.BindVbo(_vbo, shader, new[] {
-                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes * 2 + 4, 0),
-                    new VertexAttribute("_pos2", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes * 2 + 4, Vector3.SizeInBytes),
-                    new VertexAttribute("_type", 1, VertexAttribIntegerType.Int, Vector3.SizeInBytes * 2 + 4, Vector3.SizeInBytes * 2),
+                    new VertexAttribute("_pos", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes * 2 + Vector4.SizeInBytes, 0),
+                    new VertexAttribute("_pos2", 3, VertexAttribPointerType.Float, Vector3.SizeInBytes * 2 + Vector4.SizeInBytes, Vector3.SizeInBytes),
+                    new VertexAttribute("_col", 4, VertexAttribPointerType.Float, Vector3.SizeInBytes * 2 + Vector4.SizeInBytes, Vector3.SizeInBytes * 2),
                 });
                 _lastUsedShader = shader.ProgramId;
             }
