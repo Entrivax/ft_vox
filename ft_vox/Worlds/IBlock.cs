@@ -2,7 +2,7 @@
 
 namespace ft_vox.Worlds
 {
-    interface IBlock
+    public interface IBlock
     {
         bool IsOpaque { get; }
         

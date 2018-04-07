@@ -95,16 +95,18 @@
     <Compile Include="Worlds\BlocksProvider.cs" />
     <Compile Include="Worlds\Chunk.cs" />
     <Compile Include="Worlds\ChunkGeneratorSurface.cs" />
+    <Compile Include="Worlds\ChunkManager.cs" />
+    <Compile Include="Worlds\ChunkPartManager.cs" />
     <Compile Include="Worlds\ChunkPosition.cs" />
-    <Compile Include="Worlds\ChunkProvider.cs" />
+    <Compile Include="Worlds\IChunkManager.cs" />
+    <Compile Include="Worlds\IChunkPartManager.cs" />
+    <Compile Include="Worlds\WorldManager.cs" />
     <Compile Include="Worlds\HitInfo.cs" />
     <Compile Include="Worlds\IBlock.cs" />
     <Compile Include="Worlds\IBlocksProvider.cs" />
     <Compile Include="Worlds\IChunkGenerator.cs" />
-    <Compile Include="Worlds\IChunkProvider.cs" />
-    <Compile Include="Worlds\IVertexList.cs" />
+    <Compile Include="Worlds\IWorldManager.cs" />
     <Compile Include="Worlds\Location.cs" />
-    <Compile Include="Worlds\VertexList.cs" />
     <Compile Include="Worlds\World.cs" />
   </ItemGroup>
   <ItemGroup>

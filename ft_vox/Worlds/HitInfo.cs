@@ -1,6 +1,6 @@
 ﻿namespace ft_vox.Worlds
 {
-    internal class HitInfo
+    public class HitInfo
     {
         public int X;
         public int Y;

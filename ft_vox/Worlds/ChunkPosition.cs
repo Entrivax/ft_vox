@@ -2,7 +2,7 @@
 
 namespace ft_vox.Worlds
 {
-    struct ChunkPosition : IEquatable<ChunkPosition>
+    public struct ChunkPosition : IEquatable<ChunkPosition>
     {
         public int X { get; private set; }
         public int Z { get; private set; }

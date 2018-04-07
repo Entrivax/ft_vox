@@ -2,6 +2,6 @@
 {
     interface IChunkGenerator
     {
-        void PopulateChunk(Chunk chunk, ChunkPosition position);
+        void PopulateChunk(World world, Chunk chunk, ChunkPosition position);
     }
 }

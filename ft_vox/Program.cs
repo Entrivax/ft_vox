@@ -48,14 +48,18 @@ namespace ft_vox
                 blockSelector.AddSelectableBlock(24);
                 blockSelector.AddSelectableBlock(31);
                 blockSelector.AddSelectableBlock(35);
-                var chunkGenerator = new ChunkGeneratorSurface(new Random().Next());
-                var chunkProvider = new ChunkProvider(blocksProvider, chunkGenerator);
-                var world = new World(chunkProvider);
+            
+                var chunkManager = new ChunkManager();
+                var chunkGenerator = new ChunkGeneratorSurface(chunkManager);
+                var worldManager = new WorldManager(blocksProvider, chunkManager, chunkGenerator);
+                var chunkPartManager = new ChunkPartManager(worldManager, chunkManager, blocksProvider);
+            
+                var world = new World("world", new Random().Next());
                 var window = new MainWindow(gameStateManager, world);
                 
-                gameStateManager.SetGameState(new GameStatePlay(gameStateManager, blockSelector, blocksProvider, world));
+                gameStateManager.SetGameState(new GameStatePlay(gameStateManager, worldManager, chunkManager, chunkPartManager, blockSelector, blocksProvider, world));
                 window.Run(60);
-                chunkProvider.Clean();
+                worldManager.Clean(world);
             /*}
             catch (Exception exception)
             {

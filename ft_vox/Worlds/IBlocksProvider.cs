@@ -1,6 +1,6 @@
 ﻿namespace ft_vox.Worlds
 {
-    interface IBlocksProvider
+    public interface IBlocksProvider
     {
         IBlock GetBlockForId(byte id);
 

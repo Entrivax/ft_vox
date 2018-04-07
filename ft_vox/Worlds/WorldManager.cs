@@ -10,19 +10,17 @@ using OpenTK;
 
 namespace ft_vox.Worlds
 {
-    class ChunkProvider : IChunkProvider
+    class WorldManager : IWorldManager
     {
-        private ConcurrentDictionary<ChunkPosition, Chunk[]> _chunkBlocks;
-        private ConcurrentBag<Chunk> _chunksToUnload;
-        private IBlocksProvider _blocksProvider;
-        private IChunkGenerator _chunkGenerator;
+        private readonly IBlocksProvider _blocksProvider;
+        private readonly IChunkManager _chunkManager;
+        private readonly IChunkGenerator _chunkGenerator;
 
-        public ChunkProvider(IBlocksProvider blocksProvider, IChunkGenerator chunkGenerator)
+        public WorldManager(IBlocksProvider blocksProvider, IChunkManager chunkManager, IChunkGenerator chunkGenerator)
         {
             _blocksProvider = blocksProvider;
-            _chunkBlocks = new ConcurrentDictionary<ChunkPosition, Chunk[]>();
+            _chunkManager = chunkManager;
             _chunkGenerator = chunkGenerator;
-            _chunksToUnload = new ConcurrentBag<Chunk>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -30,41 +28,111 @@ namespace ft_vox.Worlds
         {
             return x < 0 ? -x : x;
         }
+        
+        public Chunk GetChunkAt(World world, int x, int z)
+        {
+            return ProvideChunk(world, x, z);
+        }
 
-        public Chunk ProvideChunk(World world, int x, int z)
+        public Chunk GetChunkAtWorldCoordinates(World world, int x, int z)
+        {
+            return DirectGetChunk(world, x >> 4, z >> 4);
+        }
+
+        public byte GetBlockIdAtForCurrentlyLoadedChunks(World world, int x, int y, int z)
+        {
+            var x4 = x >> 4;
+            var z4 = z >> 4;
+            var chunk = DirectGetChunk(world, x4, z4);
+            return chunk == null ? (byte)0 : _chunkManager.GetBlockId(chunk, (byte)(x - (x4 << 4)), (byte)y, (byte)(z - (z4 << 4)));
+        }
+
+        public byte GetBlockIdAt(World world, int x, int y, int z)
+        {
+            var x4 = x >> 4;
+            var z4 = z >> 4;
+            var chunk = ProvideChunk(world, x4, z4);
+            return _chunkManager.GetBlockId(chunk, (byte)(x - (x4 << 4)), (byte)y, (byte)(z - (z4 << 4)));
+        }
+        
+        public Chunk[] GetSiblingChunks(World world, ChunkPosition chunkPosition)
+        {
+            var chunks = new Chunk[4];
+            chunks[0] = DirectGetChunk(world, chunkPosition.X - 1, chunkPosition.Z);
+            chunks[1] = DirectGetChunk(world, chunkPosition.X, chunkPosition.Z + 1);
+            chunks[2] = DirectGetChunk(world, chunkPosition.X + 1, chunkPosition.Z);
+            chunks[3] = DirectGetChunk(world, chunkPosition.X, chunkPosition.Z - 1);
+            return chunks;
+        }
+
+        public void SetBlockIdAt(World world, int x, int y, int z, byte blockId)
+        {
+            SetBlockIdAndMetadataAt(world, x, y, z, blockId, 0);
+        }
+        
+        public void SetBlockIdAndMetadataAt(World world, int x, int y, int z, byte blockId, byte metadata)
+        {
+            var x40 = x >> 4;
+            var z40 = z >> 4;
+            var by = (byte)y;
+            var chunk0 = ProvideChunk(world, x40, z40);
+            _chunkManager.SetBlockIdAndMetadata(chunk0, (byte)(x & 0xF), (byte)y, (byte)(z & 0xF), blockId, metadata);
+            _chunkManager.Invalidate(chunk0, by);
+            if (y > 0)
+                _chunkManager.Invalidate(chunk0, (byte)(y - 1));
+            if (y < 255)
+                _chunkManager.Invalidate(chunk0, (byte)(y + 1));
+
+            var x41 = (x - 1) >> 4;
+            var x42 = (x + 1) >> 4;
+            if (x41 != x40)
+                _chunkManager.Invalidate(ProvideChunk(world, x41, z40), by);
+            else if (x42 != x40)
+                _chunkManager.Invalidate(ProvideChunk(world, x42, z40), by);
+
+            var z41 = (z - 1) >> 4;
+            var z42 = (z + 1) >> 4;
+            if (z41 != z40)
+                _chunkManager.Invalidate(ProvideChunk(world, x40, z41), by);
+            else if (z42 != z40)
+                _chunkManager.Invalidate(ProvideChunk(world, x40, z42), by);
+        }
+        
+        private Chunk ProvideChunk(World world, int x, int z)
         {
             var position = new ChunkPosition(x, z);
 
             var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
             Chunk[] chunkBlock;
-            if (!_chunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
+            if (!world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
                 chunkBlock = new Chunk[8 * 8];
-                _chunkBlocks.TryAdd(chunkBlockPosition, chunkBlock);
+                world.ChunkBlocks.TryAdd(chunkBlockPosition, chunkBlock);
             }
             var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
             if (chunkBlock[chunkIndex] != null)
                 return chunkBlock[chunkIndex];
             
-            var newChunk = new Chunk(world, _blocksProvider);
-            if (_chunkGenerator != null)
-                _chunkGenerator.PopulateChunk(newChunk, position);
-            else
-                PopulateChunk(newChunk);
+            var newChunk = new Chunk();
+            _chunkGenerator.PopulateChunk(world, newChunk, position);
             chunkBlock[chunkIndex] = newChunk;
 
-            var chunk = DirectGetChunk(x - 1, z);
-            chunk?.Invalidate();
-            chunk = DirectGetChunk(x + 1, z);
-            chunk?.Invalidate();
-            chunk = DirectGetChunk(x, z - 1);
-            chunk?.Invalidate();
-            chunk = DirectGetChunk(x, z + 1);
-            chunk?.Invalidate();
+            var chunk = DirectGetChunk(world, x - 1, z);
+            if (chunk != null)
+                _chunkManager.Invalidate(chunk);
+            chunk = DirectGetChunk(world, x + 1, z);
+            if (chunk != null)
+                _chunkManager.Invalidate(chunk);
+            chunk = DirectGetChunk(world, x, z - 1);
+            if (chunk != null)
+                _chunkManager.Invalidate(chunk);
+            chunk = DirectGetChunk(world, x, z + 1);
+            if (chunk != null)
+                _chunkManager.Invalidate(chunk);
             return newChunk;
         }
         
-        public bool Cast(World world, Vector3 origin, Vector3 direction, float maxDistance, out HitInfo hitInfo)
+        public bool CastRay(World world, Vector3 origin, Vector3 direction, float maxDistance, out HitInfo hitInfo)
         {
             var invDir = new Vector3(direction.X == 0 ? float.PositiveInfinity : 1 / direction.X,
                 direction.Y == 0 ? float.PositiveInfinity : 1 / direction.Y,
@@ -74,7 +142,7 @@ namespace ft_vox.Worlds
 
             var hitChunkBlocks = new List<Tuple<float, KeyValuePair<ChunkPosition, Chunk[]>>>();
             
-            foreach (var chunkBlock in _chunkBlocks)
+            foreach (var chunkBlock in world.ChunkBlocks)
             {
                 var chunkBlockPosition = chunkBlock.Key;
                 var bXMin = chunkBlockPosition.X * 128;
@@ -172,7 +240,7 @@ namespace ft_vox.Worlds
                     {
                         for (byte z = 0; z < 16; z++)
                         {
-                            if (hitChunkPart.Item2.GetBlockId(x, (byte) y, z) == 0)
+                            if (_chunkManager.GetBlockId(hitChunkPart.Item2, x, (byte) y, z) == 0)
                                 continue;
                             
                             var bXMin = hitChunkPart.Item1.X + x;
@@ -238,10 +306,10 @@ namespace ft_vox.Worlds
             return true;
         }
 
-        public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks()
+        public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks(World world)
         {
             var chunks = new List<Tuple<ChunkPosition, Chunk>>();
-            foreach (var chunkBlock in _chunkBlocks)
+            foreach (var chunkBlock in world.ChunkBlocks)
             {
                 var chunkBlockPosition = chunkBlock.Key;
                 var currentChunks = chunkBlock.Value;
@@ -260,40 +328,32 @@ namespace ft_vox.Worlds
             return chunks;
         }
 
-        private void PopulateChunk(Chunk chunk)
-        {
-            for(byte x = 0; x < 16; x++)
-                for (byte y = 0; y < 64; y++)
-                    for (byte z = 0; z < 16; z++)
-                        chunk.SetBlockId(x, y, z, 1);
-        }
-
-        public void SetChunkToUnload(int x, int z)
+        public void SetChunkToUnload(World world, int x, int z)
         {
             var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
             Chunk[] chunkBlock;
-            if (_chunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
+            if (world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
                 var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
                 if (chunkBlock[chunkIndex] != null)
                 {
-                    _chunksToUnload.Add(chunkBlock[chunkIndex]);
+                    world.ChunksToUnload.Add(chunkBlock[chunkIndex]);
                     chunkBlock[chunkIndex] = null;
 
                     for (int i = 0; i < chunkBlock.Length; i++)
                         if (chunkBlock[i] != null)
                             return;
                     Chunk[] tmp;
-                    _chunkBlocks.TryRemove(chunkBlockPosition, out tmp);
+                    world.ChunkBlocks.TryRemove(chunkBlockPosition, out tmp);
                 }
             }
         }
 
-        public Chunk DirectGetChunk(int x, int z)
+        public Chunk DirectGetChunk(World world, int x, int z)
         {
             var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
             Chunk[] chunkBlock;
-            if (_chunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
+            if (world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
                 var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
                 if (chunkBlock[chunkIndex] != null)
@@ -302,33 +362,33 @@ namespace ft_vox.Worlds
             return null;
         }
 
-        public void UnloadChunks()
+        public void UnloadChunks(World world)
         {
-            while (_chunksToUnload.Count > 0)
+            while (world.ChunksToUnload.Count > 0)
             {
                 Chunk chunk;
-                if (!_chunksToUnload.TryTake(out chunk))
+                if (!world.ChunksToUnload.TryTake(out chunk))
                     break;
-                chunk.Unload();
+                _chunkManager.Unload(chunk);
             }
         }
 
-        public void Clean()
+        public void Clean(World world)
         {
-            foreach (var c in _chunkBlocks)
+            foreach (var c in world.ChunkBlocks)
             {
                 for(int i = 0; i < 8; i++)
                     for(int j = 0; j < 8; j++)
-                        SetChunkToUnload(c.Key.X * 8 + i, c.Key.Z * 8 + j);
+                        SetChunkToUnload(world, c.Key.X * 8 + i, c.Key.Z * 8 + j);
             }
-            UnloadChunks();
+            UnloadChunks(world);
         }
 
-        public List<Chunk> GetVisibleChunks(Vector3 cameraPosition, Plane[] frustumPlanes)
+        public List<Chunk> GetVisibleChunks(World world, Vector3 cameraPosition, Plane[] frustumPlanes)
         {
             var chunks = new List<Chunk>();
             var aabb = new AABB();
-            foreach (var chunkBlock in _chunkBlocks)
+            foreach (var chunkBlock in world.ChunkBlocks)
             {
                 var chunkBlockPosition = chunkBlock.Key;
                 var currentChunks = chunkBlock.Value;

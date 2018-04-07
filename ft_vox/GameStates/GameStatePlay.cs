@@ -65,15 +65,21 @@ namespace ft_vox.GameStates
         private Thread _loadingThread;
         private bool _stopLoading;
         private IGameStateManager _gameStateManager;
+        private readonly IWorldManager _worldManager;
+        private readonly IChunkManager _chunkManager;
+        private readonly IChunkPartManager _chunkPartManager;
         private readonly IBlockSelector _blockSelector;
         private readonly IBlocksProvider _blocksProvider;
 
-        public GameStatePlay(IGameStateManager gameStateManager, IBlockSelector blockSelector, IBlocksProvider blocksProvider, World world)
+        public GameStatePlay(IGameStateManager gameStateManager, IWorldManager worldManager, IChunkManager chunkManager, IChunkPartManager chunkPartManager, IBlockSelector blockSelector, IBlocksProvider blocksProvider, World world)
         {
             Debug = new DebugObjects();
             
             _world = world;
             _gameStateManager = gameStateManager;
+            _worldManager = worldManager;
+            _chunkManager = chunkManager;
+            _chunkPartManager = chunkPartManager;
             _blockSelector = blockSelector;
             _blocksProvider = blocksProvider;
             _selectedBlockId = _blockSelector.GetNextBlock(0);
@@ -166,7 +172,7 @@ namespace ft_vox.GameStates
                 {
                     while (!_stopLoading)
                     {
-                        var chunks = _world.GetLoadedChunks();
+                        var chunks = _worldManager.GetLoadedChunks(_world);
                         var playerPosition = _player.Position;
                         var playerPos2D = playerPosition.Xz;
 
@@ -186,7 +192,7 @@ namespace ft_vox.GameStates
                         var orderedChunks = chunkPositionsThatCouldBeLoaded.OrderBy(chunkPosition => (new Vector2(chunkPosition.X * 16 + 8, chunkPosition.Z * 16 + 8) - playerPos2D).LengthSquared).Cast<ChunkPosition?>();
                         var closestChunkToLoad = orderedChunks.FirstOrDefault();
                         if (closestChunkToLoad != null)
-                            _world.GetChunkAt(closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
+                            _worldManager.GetChunkAt(_world, closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
                         else
                             Thread.Sleep(1000);
 
@@ -195,7 +201,7 @@ namespace ft_vox.GameStates
                             var chunkPos = chunk.Item1;
                             var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8, chunkPos.Z * 16 + 8);
                             if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * 16 + 16)
-                                _world.SetChunkToUnload(chunkPos.X, chunkPos.Z);
+                                _worldManager.SetChunkToUnload(_world, chunkPos.X, chunkPos.Z);
                         }
                     }
                 }))
@@ -210,7 +216,7 @@ namespace ft_vox.GameStates
             Debug.Clear();
             _selectedBlocks.Clear();
 
-            _world.CheckInvalidations();
+            _chunkPartManager.CheckInvalidations(_world);
             
             _framerate = (float)(1 / deltaTime);
             GL.ClearColor(new Color4(0.6f, 0.8f, 0.85f, 1f));
@@ -240,7 +246,7 @@ namespace ft_vox.GameStates
             try
             {
                 HitInfo hitInfo;
-                if (_world.Cast(cameraPostition, _player.EyeForward, 20f, out hitInfo))
+                if (_worldManager.CastRay(_world, cameraPostition, _player.EyeForward, 20f, out hitInfo))
                 {
                     _selectedBlocks.AddAABB(new AABBObjects.AABBObject
                     {
@@ -270,13 +276,12 @@ namespace ft_vox.GameStates
             _baseShader.SetUniform3("cameraPosition", ref cameraPostition);
             _baseShader.SetUniformMatrix4("proj", false, ref _proj);
             _baseShader.SetUniformMatrix4("view", false, ref view);
-            var chunks = _world.GetVisibleChunks(cameraPostition, _frustum);
+            var chunks = _worldManager.GetVisibleChunks(_world, cameraPostition, _frustum);
             _visibleChunks = chunks.Count;
-            _gpuBlocks = chunks.Count > 0 ? chunks.Select(c => c.DisplayableBlocks).Aggregate((a, b) => a + b) : 0;
             TextureManager.Use(_terrainTexture);
             foreach (var chunk in chunks)
             {
-                chunk.Draw(_baseShader);
+                _chunkManager.Draw(chunk, _baseShader);
             }
             TextureManager.Disable();
             _baseShader.Unbind();
@@ -362,7 +367,7 @@ namespace ft_vox.GameStates
 
         public void Update(double deltaTime)
         {
-            _world.UnloadChunks();
+            _worldManager.UnloadChunks(_world);
             CleanMeshes();
             _player.Update(deltaTime);
 
@@ -380,15 +385,15 @@ namespace ft_vox.GameStates
             if (MouseHelper.IsKeyPressed(MouseButton.Left))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
+                if (_worldManager.CastRay(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
                 {
-                    _world.SetBlockIdAt(hitInfo.X, hitInfo.Y, hitInfo.Z, 0);
+                    _worldManager.SetBlockIdAt(_world, hitInfo.X, hitInfo.Y, hitInfo.Z, 0);
                 }
             }
             if (MouseHelper.IsKeyPressed(MouseButton.Right))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
+                if (_worldManager.CastRay(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 20f, out hitInfo))
                 {
                     var x = hitInfo.X;
                     var y = hitInfo.Y;
@@ -405,7 +410,7 @@ namespace ft_vox.GameStates
                         z++;
                     else if (hitInfo.Face == HitInfo.FaceEnum.Back)
                         z--;
-                    _world.SetBlockIdAndMetadataAt(x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
+                    _worldManager.SetBlockIdAndMetadataAt(_world, x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
                 }
             }
             if (KeyboardHelper.IsKeyPressed(Key.Q))
@@ -429,7 +434,7 @@ namespace ft_vox.GameStates
             if (KeyboardHelper.IsKeyPressed(Key.X))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
+                if (_worldManager.CastRay(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
                 {
                     var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
                     for (int x = hitInfo.X - _destroySphereRadius + 1; x <= hitInfo.X + _destroySphereRadius - 1; x++)
@@ -439,7 +444,7 @@ namespace ft_vox.GameStates
                             for (int z = hitInfo.Z - _destroySphereRadius + 1; z <= hitInfo.Z + _destroySphereRadius - 1; z++)
                             {
                                 if ((new Vector3(x, y, z) - impactPoint).LengthFast <= _destroySphereRadius)
-                                    _world.SetBlockIdAt(x, y, z, 0);
+                                    _worldManager.SetBlockIdAt(_world, x, y, z, 0);
                             }
                         }
                     }
@@ -448,7 +453,7 @@ namespace ft_vox.GameStates
             if (KeyboardHelper.IsKeyPressed(Key.C))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
+                if (_worldManager.CastRay(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
                 {
                     var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
                     for (int x = hitInfo.X - _destroySphereRadius + 1; x <= hitInfo.X + _destroySphereRadius - 1; x++)
@@ -458,7 +463,7 @@ namespace ft_vox.GameStates
                             for (int z = hitInfo.Z - _destroySphereRadius + 1; z <= hitInfo.Z + _destroySphereRadius - 1; z++)
                             {
                                 if ((new Vector3(x, y, z) - impactPoint).LengthFast <= _destroySphereRadius)
-                                    _world.SetBlockIdAndMetadataAt(x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
+                                    _worldManager.SetBlockIdAndMetadataAt(_world, x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
                             }
                         }
                     }
@@ -467,7 +472,7 @@ namespace ft_vox.GameStates
             if (KeyboardHelper.IsKeyPressed(Key.V))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
+                if (_worldManager.CastRay(_world, _player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
                 {
                     int[,] cupil = new[,]
                     {
@@ -490,7 +495,7 @@ namespace ft_vox.GameStates
                         for (int y = 11; y >= 0; y--)
                         {
                             if (cupil[y, x] != -1)
-                                _world.SetBlockIdAndMetadataAt(hitInfo.X - 7 + x, hitInfo.Y + 12 - y, hitInfo.Z, (byte)35, (byte)cupil[y, x]);
+                                _worldManager.SetBlockIdAndMetadataAt(_world, hitInfo.X - 7 + x, hitInfo.Y + 12 - y, hitInfo.Z, (byte)35, (byte)cupil[y, x]);
                         }
                     }
                 }

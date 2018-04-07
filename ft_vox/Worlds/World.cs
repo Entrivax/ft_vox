@@ -1,120 +1,27 @@
 ﻿using ft_vox.Frustum;
 using OpenTK;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using ft_vox.Gameplay;
 
 namespace ft_vox.Worlds
 {
-    class World
+    public class World
     {
-        private IChunkProvider _chunkProvider;
-
-        public World(IChunkProvider chunkProvider)
-        {
-            _chunkProvider = chunkProvider;
-        }
-
-        public Chunk GetChunkAt(int x, int z)
-        {
-            return _chunkProvider.ProvideChunk(this, x, z);
-        }
-
-        public Chunk GetChunkAtWorldCoordinates(int x, int z)
-        {
-            return _chunkProvider.DirectGetChunk(x >> 4, z >> 4);
-        }
-
-        public byte GetBlockIdAtForCurrentlyLoadedChunks(int x, int y, int z)
-        {
-            var x4 = x >> 4;
-            var z4 = z >> 4;
-            return _chunkProvider.DirectGetChunk(x4, z4)?.GetBlockId((byte)(x - (x4 << 4)), (byte)y, (byte)(z - (z4 << 4))) ?? 0;
-        }
-
-        public Chunk[] GetSiblingChunks(ChunkPosition chunkPosition)
-        {
-            var chunks = new Chunk[4];
-            chunks[0] = _chunkProvider.DirectGetChunk(chunkPosition.X - 1, chunkPosition.Z);
-            chunks[1] = _chunkProvider.DirectGetChunk(chunkPosition.X, chunkPosition.Z + 1);
-            chunks[2] = _chunkProvider.DirectGetChunk(chunkPosition.X + 1, chunkPosition.Z);
-            chunks[3] = _chunkProvider.DirectGetChunk(chunkPosition.X, chunkPosition.Z - 1);
-            return chunks;
-        }
-
-        public byte GetBlockIdAt(int x, int y, int z)
-        {
-            var x4 = x >> 4;
-            var z4 = z >> 4;
-            return _chunkProvider.ProvideChunk(this, x4, z4).GetBlockId((byte)(x - (x4 << 4)), (byte)y, (byte)(z - (z4 << 4)));
-        }
-
-        public void SetBlockIdAt(int x, int y, int z, byte blockId)
-        {
-            SetBlockIdAndMetadataAt(x, y, z, blockId, 0);
-        }
+        public ConcurrentBag<Chunk> ChunksToUnload { get; }
+        public ConcurrentDictionary<ChunkPosition, Chunk[]> ChunkBlocks { get; }
         
-        public void SetBlockIdAndMetadataAt(int x, int y, int z, byte blockId, byte metadata)
+        public string Name { get; }
+        public long Seed { get; }
+
+        public World(string name, long seed)
         {
-            var x40 = x >> 4;
-            var z40 = z >> 4;
-            var by = (byte)y;
-            var chunk0 = _chunkProvider.ProvideChunk(this, x40, z40);
-            chunk0.SetBlockIdAndMetadata((byte)(x & 0xF), (byte)y, (byte)(z & 0xF), blockId, metadata);
-            chunk0.Invalidate(by);
-            if (y > 0)
-                chunk0.Invalidate((byte)(y - 1));
-            if (y < 255)
-                chunk0.Invalidate((byte)(y + 1));
-
-            var x41 = (x - 1) >> 4;
-            var x42 = (x + 1) >> 4;
-            if (x41 != x40)
-                _chunkProvider.ProvideChunk(this, x41, z40).Invalidate(by);
-            else if (x42 != x40)
-                _chunkProvider.ProvideChunk(this, x42, z40).Invalidate(by);
-
-            var z41 = (z - 1) >> 4;
-            var z42 = (z + 1) >> 4;
-            if (z41 != z40)
-                _chunkProvider.ProvideChunk(this, x40, z41).Invalidate(by);
-            else if (z42 != z40)
-                _chunkProvider.ProvideChunk(this, x40, z42).Invalidate(by);
-        }
-
-        public void CheckInvalidations()
-        {
-            var chunks = _chunkProvider.GetLoadedChunks();
-            foreach(var chunk in chunks)
-            {
-                chunk.Item2.CheckInvalidations(chunk.Item1);
-            }
-        }
-
-        public List<Tuple<ChunkPosition, Chunk>> GetLoadedChunks()
-        {
-            return _chunkProvider.GetLoadedChunks();
-        }
-
-        public bool Cast(Vector3 origin, Vector3 direction, float maxDistance, out HitInfo hitInfo)
-        {
-            return _chunkProvider.Cast(this, origin, direction, maxDistance, out hitInfo);
-        }
-
-        public List<Chunk> GetVisibleChunks(Vector3 cameraPosition, Plane[] frustumPlanes)
-        {
-            return _chunkProvider.GetVisibleChunks(cameraPosition, frustumPlanes);
-        }
-
-        public void SetChunkToUnload(int x, int z)
-        {
-            _chunkProvider.SetChunkToUnload(x, z);
-        }
-
-        public void UnloadChunks()
-        {
-            _chunkProvider.UnloadChunks();
+            Name = name;
+            Seed = seed;
+            ChunkBlocks = new ConcurrentDictionary<ChunkPosition, Chunk[]>();
+            ChunksToUnload = new ConcurrentBag<Chunk>();
         }
     }
 }
