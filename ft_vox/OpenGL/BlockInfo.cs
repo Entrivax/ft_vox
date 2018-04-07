@@ -5,7 +5,7 @@ namespace ft_vox.OpenGL
     public struct BlockInfo
     {
         public Vector3 Position;
-        public int BlockIdAndBlockVisibility;
+        public int BlockIdAndBlockVisibilityAndMetadata;
         public int HumidityAndTemperature;
     }
 

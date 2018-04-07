@@ -58,6 +58,7 @@ namespace ft_vox.GameStates
         private int _renderDistance;
         private int _destroySphereRadius = 3;
         private int _selectedBlockId;
+        private int _selectedBlockMetadata;
         
         private Text _text;
 
@@ -76,6 +77,7 @@ namespace ft_vox.GameStates
             _blockSelector = blockSelector;
             _blocksProvider = blocksProvider;
             _selectedBlockId = _blockSelector.GetNextBlock(0);
+            _selectedBlockMetadata = 0;
 
             _aabbShader = ShaderManager.GetWithGeometry("AabbShader");
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
@@ -403,14 +405,23 @@ namespace ft_vox.GameStates
                         z++;
                     else if (hitInfo.Face == HitInfo.FaceEnum.Back)
                         z--;
-                    _world.SetBlockIdAt(x, y, z, (byte)_selectedBlockId);
+                    _world.SetBlockIdAndMetadataAt(x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
                 }
             }
             if (KeyboardHelper.IsKeyPressed(Key.Q))
+            {
                 _selectedBlockId = _blockSelector.GetPreviousBlock(_selectedBlockId);
+                _selectedBlockMetadata = 0;
+            }
             if (KeyboardHelper.IsKeyPressed(Key.E))
+            {
                 _selectedBlockId = _blockSelector.GetNextBlock(_selectedBlockId);
-                
+                _selectedBlockMetadata = 0;
+            }
+            if (KeyboardHelper.IsKeyPressed(Key.R))
+                _selectedBlockMetadata = _selectedBlockMetadata >= 255 ? 0 : _selectedBlockMetadata + 1;
+            if (KeyboardHelper.IsKeyPressed(Key.F))
+                _selectedBlockMetadata = _selectedBlockMetadata <= 0 ? 255 : _selectedBlockMetadata - 1;
             if (KeyboardHelper.IsKeyPressed(Key.BracketRight))
                 _destroySphereRadius = _destroySphereRadius < 30 ? _destroySphereRadius + 1 : _destroySphereRadius;
             if (KeyboardHelper.IsKeyPressed(Key.BracketLeft))
@@ -418,7 +429,7 @@ namespace ft_vox.GameStates
             if (KeyboardHelper.IsKeyPressed(Key.X))
             {
                 HitInfo hitInfo;
-                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 200f, out hitInfo))
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
                 {
                     var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
                     for (int x = hitInfo.X - _destroySphereRadius + 1; x <= hitInfo.X + _destroySphereRadius - 1; x++)
@@ -434,8 +445,58 @@ namespace ft_vox.GameStates
                     }
                 }
             }
+            if (KeyboardHelper.IsKeyPressed(Key.C))
+            {
+                HitInfo hitInfo;
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
+                {
+                    var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
+                    for (int x = hitInfo.X - _destroySphereRadius + 1; x <= hitInfo.X + _destroySphereRadius - 1; x++)
+                    {
+                        for (int y = hitInfo.Y - _destroySphereRadius + 1; y <= hitInfo.Y + _destroySphereRadius - 1; y++)
+                        {
+                            for (int z = hitInfo.Z - _destroySphereRadius + 1; z <= hitInfo.Z + _destroySphereRadius - 1; z++)
+                            {
+                                if ((new Vector3(x, y, z) - impactPoint).LengthFast <= _destroySphereRadius)
+                                    _world.SetBlockIdAndMetadataAt(x, y, z, (byte)_selectedBlockId, (byte)_selectedBlockMetadata);
+                            }
+                        }
+                    }
+                }
+            }
+            if (KeyboardHelper.IsKeyPressed(Key.V))
+            {
+                HitInfo hitInfo;
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 800f, out hitInfo))
+                {
+                    int[,] cupil = new[,]
+                    {
+                        {-1, -1, -1, -1, -1, 07, 07, 07, 07, -1, -1, -1, -1},
+                        {-1, -1, -1, 07, 07, 08, 08, 08, 08, 07, -1, -1, -1},
+                        {-1, -1, 07, 00, 00, 00, 00, 00, 08, 08, 07, -1, -1},
+                        {-1, 07, 08, 00, 00, 08, 08, 08, 08, 08, 08, 07, -1},
+                        {07, 07, 08, 00, 08, 08, 08, 08, 08, 08, 08, 07, -1},
+                        {07, 08, 00, 08, 08, 08, 08, 15, 08, 08, 15, 07, -1},
+                        {-1, 07, 08, 08, 08, 07, 06, 08, 08, 08, 08, 06, 07},
+                        {07, 08, 08, 08, 08, 08, 07, 07, 07, 07, 07, 07, -1},
+                        {07, 00, 08, 07, 08, 08, 08, 08, 08, 08, 07, -1, -1},
+                        {07, 00, 07, 08, 07, 07, 08, 07, 07, 07, 08, 07, -1},
+                        {-1, 07, 08, 08, 07, -1, 07, -1, -1, -1, 07, -1, -1},
+                        {-1, -1, 07, 07, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+                    };
+                    var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
+                    for (int x = 0; x < 13; x++)
+                    {
+                        for (int y = 11; y >= 0; y--)
+                        {
+                            if (cupil[y, x] != -1)
+                                _world.SetBlockIdAndMetadataAt(hitInfo.X - 7 + x, hitInfo.Y + 12 - y, hitInfo.Z, (byte)35, (byte)cupil[y, x]);
+                        }
+                    }
+                }
+            }
             
-            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks\nDestroy sphere radius: {_destroySphereRadius}\nHand: {_blocksProvider.GetBlockForId((byte)_selectedBlockId).Name}";
+            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks\nDestroy sphere radius: {_destroySphereRadius}\nHand: {_blocksProvider.GetBlockForId((byte)_selectedBlockId).Name}:{_selectedBlockMetadata}";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
             _text.Str = txt;

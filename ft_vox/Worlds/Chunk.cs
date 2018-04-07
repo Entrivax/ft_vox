@@ -12,6 +12,7 @@ namespace ft_vox.Worlds
     class Chunk
     {
         byte[] blocks;
+        byte[] blockMetadatas;
         byte[] temperatures;
         byte[] humidity;
         byte[] lightMap;
@@ -30,6 +31,7 @@ namespace ft_vox.Worlds
         {
             this.world = world;
             blocks = new byte[16 * 16 * 256];
+            blockMetadatas = new byte[16 * 16 * 256];
             temperatures = new byte[16 * 16];
             humidity = new byte[16 * 16];
             var chunkPartsNumber = 256 / 16;
@@ -46,6 +48,7 @@ namespace ft_vox.Worlds
             return new ChunkBlockInformation
             {
                 Id = blocks[(y << 8) + x + (z << 4)],
+                Metadata = blockMetadatas[(y << 8) + x + (z << 4)],
                 Humidity = humidity[(z << 4) + x],
                 Temperature = temperatures[(z << 4) + x],
             };
@@ -54,6 +57,11 @@ namespace ft_vox.Worlds
         public byte GetBlockId(byte x, byte y, byte z)
         {
             return blocks[(y << 8) + x + (z << 4)];
+        }
+
+        public byte GetBlockMetadata(byte x, byte y, byte z)
+        {
+            return blockMetadatas[(y << 8) + x + (z << 4)];
         }
 
         public void SetHumidity(byte x, byte z, byte hum)
@@ -68,8 +76,15 @@ namespace ft_vox.Worlds
         
         public void SetBlockId(byte x, byte y, byte z, byte id)
         {
+            SetBlockIdAndMetadata(x, y, z, id, 0);
+        }
+        
+        public void SetBlockIdAndMetadata(byte x, byte y, byte z, byte id, byte metadata)
+        {
             chunkParts[y >> 4].Invalidated = true;
-            blocks[(y << 8) + x + (z << 4)] = id;
+            var index = (y << 8) + x + (z << 4);
+            blocks[index] = id;
+            blockMetadatas[index] = metadata;
         }
 
         public void Invalidate(byte y)
@@ -160,6 +175,7 @@ namespace ft_vox.Worlds
             public byte Humidity { get; set; }
             public byte Temperature { get; set; }
             public byte Id { get; set; }
+            public byte Metadata { get; set; }
         }
 
         public class ChunkPart
@@ -255,11 +271,11 @@ namespace ft_vox.Worlds
                     {
                         blockVisibility |= (int)BlockVisibility.Back;
                     }
-                    if (blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)(y - 1), z))?.IsOpaque != true)
+                    if (y == 0 || blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)(y - 1), z))?.IsOpaque != true)
                     {
                         blockVisibility |= (int)BlockVisibility.Bottom;
                     }
-                    if (blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)(y + 1), z))?.IsOpaque != true)
+                    if (y == 255 || blocksProvider.GetBlockForId(chunk.GetBlockId(x, (byte)(y + 1), z))?.IsOpaque != true)
                     {
                         blockVisibility |= (int)BlockVisibility.Top;
                     }
@@ -268,7 +284,7 @@ namespace ft_vox.Worlds
                 {
                     blockInfo = new BlockInfo
                     {
-                        BlockIdAndBlockVisibility = blockVisibility | chunkBlockInformation.Id,
+                        BlockIdAndBlockVisibilityAndMetadata = blockVisibility | chunkBlockInformation.Id | (chunkBlockInformation.Metadata << 14),
                         HumidityAndTemperature = chunkBlockInformation.Humidity << 8 | chunkBlockInformation.Temperature,
                         Position = new Vector3((chunkPosition.X << 4) + x, y, (chunkPosition.Z << 4) + z)
                     };

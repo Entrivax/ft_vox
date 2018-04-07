@@ -52,11 +52,16 @@ namespace ft_vox.Worlds
 
         public void SetBlockIdAt(int x, int y, int z, byte blockId)
         {
+            SetBlockIdAndMetadataAt(x, y, z, blockId, 0);
+        }
+        
+        public void SetBlockIdAndMetadataAt(int x, int y, int z, byte blockId, byte metadata)
+        {
             var x40 = x >> 4;
             var z40 = z >> 4;
             var by = (byte)y;
             var chunk0 = _chunkProvider.ProvideChunk(this, x40, z40);
-            chunk0.SetBlockId((byte)(x & 0xF), (byte)y, (byte)(z & 0xF), blockId);
+            chunk0.SetBlockIdAndMetadata((byte)(x & 0xF), (byte)y, (byte)(z & 0xF), blockId, metadata);
             chunk0.Invalidate(by);
             if (y > 0)
                 chunk0.Invalidate((byte)(y - 1));

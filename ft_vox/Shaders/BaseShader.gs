@@ -10,7 +10,7 @@
 layout(points) in;
 layout(triangle_strip, max_vertices = 36) out;
 
-in int blockIdAndVisibility[];
+in int blockIdAndVisibilityAndMetadata[];
 in int humidityAndTemperature[];
 
 out vec2 vertexUv;
@@ -272,8 +272,84 @@ void drawClassicBlock(int id, int blockVisibility) {
 		case 3:
 			offset = vec2(uvWidth * 2, 0);
 			break;
+		case 4:
+			offset = vec2(0, uvWidth);
+			break;
+		case 5:
+			offset = vec2(uvWidth * 4, 0);
+			break;
+		case 7:
+			offset = vec2(uvWidth, uvWidth);
+			break;
 		case 12:
 		    offset = vec2(uvWidth * 2, uvWidth);
+		    break;
+		case 13:
+		    offset = vec2(uvWidth * 3, uvWidth);
+		    break;
+		case 14:
+		    offset = vec2(0, uvWidth * 2);
+		    break;
+		case 15:
+		    offset = vec2(uvWidth, uvWidth * 2);
+		    break;
+		case 16:
+		    offset = vec2(uvWidth * 2, uvWidth * 2);
+		    break;
+		case 35:
+		    int metadata = (blockVisibility >> 14) & 0xFF;
+		    switch (metadata)
+		    {
+		        case 1:
+		            offset = vec2(uvWidth * 2, uvWidth * 13);
+		            break;
+		        case 2:
+		            offset = vec2(uvWidth * 2, uvWidth * 12);
+		            break;
+		        case 3:
+		            offset = vec2(uvWidth * 2, uvWidth * 11);
+		            break;
+		        case 4:
+		            offset = vec2(uvWidth * 2, uvWidth * 10);
+		            break;
+		        case 5:
+		            offset = vec2(uvWidth * 2, uvWidth * 9);
+		            break;
+		        case 6:
+		            offset = vec2(uvWidth * 2, uvWidth * 8);
+		            break;
+		        case 7:
+		            offset = vec2(uvWidth * 2, uvWidth * 7);
+		            break;
+		        case 8:
+		            offset = vec2(uvWidth, uvWidth * 14);
+		            break;
+		        case 9:
+		            offset = vec2(uvWidth, uvWidth * 13);
+		            break;
+		        case 10:
+		            offset = vec2(uvWidth, uvWidth * 12);
+		            break;
+		        case 11:
+		            offset = vec2(uvWidth, uvWidth * 11);
+		            break;
+		        case 12:
+		            offset = vec2(uvWidth, uvWidth * 10);
+		            break;
+		        case 13:
+		            offset = vec2(uvWidth, uvWidth * 9);
+		            break;
+		        case 14:
+		            offset = vec2(uvWidth, uvWidth * 8);
+		            break;
+		        case 15:
+		            offset = vec2(uvWidth, uvWidth * 7);
+		            break;
+		    
+		        default:
+		            offset = vec2(0, uvWidth * 4);
+		            break;
+		    }
 		    break;
 	}
 	vec2 topLeftUv = vec2(0, 0) + offset;
@@ -541,7 +617,7 @@ vec3 map2D(vec2 pos, vec3 downleft, vec3 upleft, vec3 downright)
 
 void main()
 {
-	int id = blockIdAndVisibility[0] & 255;
+	int id = blockIdAndVisibilityAndMetadata[0] & 255;
 	int temperature = humidityAndTemperature[0] & 255;
 	int humidity = (humidityAndTemperature[0] >> 8) & 255;
 	vec3 grassColor = map2D(vec2(temperature / 255.0, humidity / 255.0),
@@ -553,7 +629,7 @@ void main()
 	tint = vec3(1, 1, 1);
 	if (id == 2)
 	{
-		drawGrassBlock(blockIdAndVisibility[0], grassColor);
+		drawGrassBlock(blockIdAndVisibilityAndMetadata[0], grassColor);
 	}
 	else if (id == 31)
 	{
@@ -561,10 +637,14 @@ void main()
 	}
 	else if (id == 24)
 	{
-	    drawMultiTexturedBlock(blockIdAndVisibility[0], vec2(0, uvWidth * 11), vec2(0, uvWidth * 13), vec2(0, uvWidth * 12)); 
+	    drawMultiTexturedBlock(blockIdAndVisibilityAndMetadata[0], vec2(0, uvWidth * 11), vec2(0, uvWidth * 13), vec2(0, uvWidth * 12)); 
+	}
+	else if (id == 17)
+	{
+	    drawMultiTexturedBlock(blockIdAndVisibilityAndMetadata[0], vec2(uvWidth * 5, uvWidth), vec2(uvWidth * 5, uvWidth), vec2(uvWidth * 4, uvWidth)); 
 	}
 	else
 	{
-		drawClassicBlock(id, blockIdAndVisibility[0]);
+		drawClassicBlock(id, blockIdAndVisibilityAndMetadata[0]);
 	}
 }
