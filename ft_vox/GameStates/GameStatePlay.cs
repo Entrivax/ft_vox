@@ -56,6 +56,7 @@ namespace ft_vox.GameStates
         private float _framerate;
 
         private int _renderDistance;
+        private int _destroySphereRadius = 3;
         
         private Text _text;
 
@@ -398,8 +399,31 @@ namespace ft_vox.GameStates
                     _world.SetBlockIdAt(x, y, z, 1);
                 }
             }
+            if (KeyboardHelper.IsKeyPressed(Key.BracketRight))
+                _destroySphereRadius = _destroySphereRadius < 30 ? _destroySphereRadius + 1 : _destroySphereRadius;
+            if (KeyboardHelper.IsKeyPressed(Key.BracketLeft))
+                _destroySphereRadius = _destroySphereRadius > 1 ? _destroySphereRadius - 1 : _destroySphereRadius;
+            if (KeyboardHelper.IsKeyPressed(Key.X))
+            {
+                HitInfo hitInfo;
+                if (_world.Cast(_player.Position + new Vector3(0, 1.7f, 0f), _player.EyeForward, 200f, out hitInfo))
+                {
+                    var impactPoint = new Vector3(hitInfo.X, hitInfo.Y, hitInfo.Z);
+                    for (int x = hitInfo.X - _destroySphereRadius + 1; x <= hitInfo.X + _destroySphereRadius - 1; x++)
+                    {
+                        for (int y = hitInfo.Y - _destroySphereRadius + 1; y <= hitInfo.Y + _destroySphereRadius - 1; y++)
+                        {
+                            for (int z = hitInfo.Z - _destroySphereRadius + 1; z <= hitInfo.Z + _destroySphereRadius - 1; z++)
+                            {
+                                if ((new Vector3(x, y, z) - impactPoint).LengthFast <= _destroySphereRadius)
+                                    _world.SetBlockIdAt(x, y, z, 0);
+                            }
+                        }
+                    }
+                }
+            }
             
-            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks";
+            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks\nDestroy sphere radius: {_destroySphereRadius}";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
             _text.Str = txt;
