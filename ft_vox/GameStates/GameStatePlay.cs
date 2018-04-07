@@ -57,19 +57,25 @@ namespace ft_vox.GameStates
 
         private int _renderDistance;
         private int _destroySphereRadius = 3;
+        private int _selectedBlockId;
         
         private Text _text;
 
         private Thread _loadingThread;
         private bool _stopLoading;
         private IGameStateManager _gameStateManager;
+        private readonly IBlockSelector _blockSelector;
+        private readonly IBlocksProvider _blocksProvider;
 
-        public GameStatePlay(IGameStateManager gameStateManager, World world)
+        public GameStatePlay(IGameStateManager gameStateManager, IBlockSelector blockSelector, IBlocksProvider blocksProvider, World world)
         {
             Debug = new DebugObjects();
             
             _world = world;
             _gameStateManager = gameStateManager;
+            _blockSelector = blockSelector;
+            _blocksProvider = blocksProvider;
+            _selectedBlockId = _blockSelector.GetNextBlock(0);
 
             _aabbShader = ShaderManager.GetWithGeometry("AabbShader");
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
@@ -339,6 +345,7 @@ namespace ft_vox.GameStates
         {
             _stopLoading = true;
             _loadingThread.Join();
+            Debug.Dispose();
         }
 
         private void CleanMeshes()
@@ -396,9 +403,14 @@ namespace ft_vox.GameStates
                         z++;
                     else if (hitInfo.Face == HitInfo.FaceEnum.Back)
                         z--;
-                    _world.SetBlockIdAt(x, y, z, 1);
+                    _world.SetBlockIdAt(x, y, z, (byte)_selectedBlockId);
                 }
             }
+            if (KeyboardHelper.IsKeyPressed(Key.Q))
+                _selectedBlockId = _blockSelector.GetPreviousBlock(_selectedBlockId);
+            if (KeyboardHelper.IsKeyPressed(Key.E))
+                _selectedBlockId = _blockSelector.GetNextBlock(_selectedBlockId);
+                
             if (KeyboardHelper.IsKeyPressed(Key.BracketRight))
                 _destroySphereRadius = _destroySphereRadius < 30 ? _destroySphereRadius + 1 : _destroySphereRadius;
             if (KeyboardHelper.IsKeyPressed(Key.BracketLeft))
@@ -423,7 +435,7 @@ namespace ft_vox.GameStates
                 }
             }
             
-            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks\nDestroy sphere radius: {_destroySphereRadius}";
+            var txt = $"Framerate: {_framerate:0.0}\nDirection : {_player.EyeForward.X:0.00} ; {_player.EyeForward.Y:0.00} ; {_player.EyeForward.Z:0.00}\nPosition: {_player.Position.X:0.00} ; {_player.Position.Y:0.00} ; {_player.Position.Z:0.00}\nParallel Mode: {StaticReferences.ParallelMode}\nRender distance: {_renderDistance} chunks\nDestroy sphere radius: {_destroySphereRadius}\nHand: {_blocksProvider.GetBlockForId((byte)_selectedBlockId).Name}";
             txt += $"\nVisible chunks: {_visibleChunks}";
             txt += $"\nVisible blocks: {_gpuBlocks}";
             _text.Str = txt;

@@ -52,7 +52,9 @@
     <Compile Include="Frustum\Plane.cs" />
     <Compile Include="GameManaging\GameStateManager.cs" />
     <Compile Include="GameManaging\IGameStateManager.cs" />
+    <Compile Include="Gameplay\BlockSelector.cs" />
     <Compile Include="Gameplay\Camera.cs" />
+    <Compile Include="Gameplay\IBlockSelector.cs" />
     <Compile Include="Gameplay\Player.cs" />
     <Compile Include="GameStates\GameStatePlay.cs" />
     <Compile Include="GameStates\IGameState.cs" />

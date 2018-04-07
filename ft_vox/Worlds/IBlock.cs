@@ -5,5 +5,7 @@ namespace ft_vox.Worlds
     interface IBlock
     {
         bool IsOpaque { get; }
+        
+        string Name { get; }
     }
 }

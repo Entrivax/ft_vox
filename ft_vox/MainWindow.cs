@@ -22,7 +22,6 @@ namespace ft_vox
             _gameStateManager = gameStateManager;
             
             _gameStateManager.OnGameStateChanged += OnGameStateChanged;
-            _gameStateManager.SetGameState(new GameStatePlay(gameStateManager, world));
         }
 
         protected override void OnLoad(EventArgs e)
