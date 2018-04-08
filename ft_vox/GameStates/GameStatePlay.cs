@@ -183,7 +183,7 @@ namespace ft_vox.GameStates
                                 var chunkPositionInLocalCoordinates = new Vector2(x, z);
                                 if ((chunkPositionInLocalCoordinates).LengthFast < _renderDistance)
                                 {
-                                    var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + playerPos2D.X / 16 + (playerPos2D.X < 0 ? -1 : 0))), (int)((chunkPositionInLocalCoordinates.Y + playerPos2D.Y / 16 + (playerPos2D.Y < 0 ? -1 : 0))));
+                                    var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + Math.Floor(playerPos2D.X / 16f))), (int)((chunkPositionInLocalCoordinates.Y + Math.Floor(playerPos2D.Y / 16f))));
                                     if (!chunks.Any(chunk => chunk.Item1.Equals(chunkPosition)))
                                         chunkPositionsThatCouldBeLoaded.Add(chunkPosition);
                                 }

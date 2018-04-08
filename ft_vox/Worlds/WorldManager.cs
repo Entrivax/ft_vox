@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using ft_vox.Frustum;
-using ft_vox.Gameplay;
-using ft_vox.GameStates;
-using ft_vox.OpenGL;
 using OpenTK;
 
 namespace ft_vox.Worlds
@@ -21,12 +17,6 @@ namespace ft_vox.Worlds
             _blocksProvider = blocksProvider;
             _chunkManager = chunkManager;
             _chunkGenerator = chunkGenerator;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int ABS(int x)
-        {
-            return x < 0 ? -x : x;
         }
         
         public Chunk GetChunkAt(World world, int x, int z)
@@ -102,14 +92,14 @@ namespace ft_vox.Worlds
         {
             var position = new ChunkPosition(x, z);
 
-            var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
+            var chunkBlockPosition = new ChunkPosition((int)Math.Floor(x / 8f), (int)Math.Floor(z / 8f));
             Chunk[] chunkBlock;
             if (!world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
                 chunkBlock = new Chunk[8 * 8];
                 world.ChunkBlocks.TryAdd(chunkBlockPosition, chunkBlock);
             }
-            var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
+            var chunkIndex = (((x & 7) << 3) + (z & 7));
             if (chunkBlock[chunkIndex] != null)
                 return chunkBlock[chunkIndex];
             
@@ -145,8 +135,8 @@ namespace ft_vox.Worlds
             foreach (var chunkBlock in world.ChunkBlocks)
             {
                 var chunkBlockPosition = chunkBlock.Key;
-                var bXMin = chunkBlockPosition.X * 128;
-                var bZMin = chunkBlockPosition.Z * 128;
+                var bXMin = chunkBlockPosition.X << 7; // multiply by 128
+                var bZMin = chunkBlockPosition.Z << 7;
                 var bXMax = bXMin + 128;
                 var bZMax = bZMin + 128;
 
@@ -186,12 +176,10 @@ namespace ft_vox.Worlds
                 {
                     if (chunks[i] == null)
                         continue;
-                    
-                    var bXMin = ((chunkBlockPosition.X + (chunkBlockPosition.X < 0 ? 1 : 0)) * 8 +
-                             (i / 8 * (chunkBlockPosition.X < 0 ? -1 : 1))) * 16;
-                    var bZMin = ((chunkBlockPosition.Z + (chunkBlockPosition.Z < 0 ? 1 : 0)) * 8 +
-                             (i % 8 * (chunkBlockPosition.Z < 0 ? -1 : 1))) * 16;
-                    
+
+                    var bXMin = (chunkBlockPosition.X << 7) + (((i >> 3) & 7) << 4); // equivalent to chunkBlockPosition.X * 128 + (i / 8) * 16
+                    var bZMin = (chunkBlockPosition.Z << 7) + ((i & 7) << 4); // equivalent to chunkBlockPosition.Z * 128 + (i % 8) * 16
+
                     var bXMax = bXMin + 16;
                     var bZMax = bZMin + 16;
                     
@@ -313,14 +301,14 @@ namespace ft_vox.Worlds
             {
                 var chunkBlockPosition = chunkBlock.Key;
                 var currentChunks = chunkBlock.Value;
-                for(int i = 0; i < currentChunks.Length; i++)
+                for (int i = 0; i < currentChunks.Length; i++)
                 {
                     if (currentChunks[i] != null)
                     {
                         chunks.Add(new Tuple<ChunkPosition, Chunk>(
                             new ChunkPosition(
-                                (chunkBlockPosition.X + (chunkBlockPosition.X < 0 ? 1 : 0)) * 8 + (i / 8 * (chunkBlockPosition.X < 0 ? -1 : 1)),
-                                (chunkBlockPosition.Z + (chunkBlockPosition.Z < 0 ? 1 : 0)) * 8 + (i % 8 * (chunkBlockPosition.Z < 0 ? -1 : 1))
+                                (chunkBlockPosition.X << 3) + (((i >> 3) & 7)),
+                                (chunkBlockPosition.Z << 3) + (i & 7)
                             ), currentChunks[i]));
                     }
                 }
@@ -330,11 +318,11 @@ namespace ft_vox.Worlds
 
         public void SetChunkToUnload(World world, int x, int z)
         {
-            var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
+            var chunkBlockPosition = new ChunkPosition((int)Math.Floor(x / 8f), (int)Math.Floor(z / 8f));
             Chunk[] chunkBlock;
             if (world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
-                var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
+                var chunkIndex = (((x & 7) << 3) + (z & 7));
                 if (chunkBlock[chunkIndex] != null)
                 {
                     world.ChunksToUnload.Add(chunkBlock[chunkIndex]);
@@ -351,11 +339,11 @@ namespace ft_vox.Worlds
 
         public Chunk DirectGetChunk(World world, int x, int z)
         {
-            var chunkBlockPosition = new ChunkPosition(x / 8 + (x < 0 ? -1 : 0), z / 8 + (z < 0 ? -1 : 0));
+            var chunkBlockPosition = new ChunkPosition((int)Math.Floor(x / 8f), (int)Math.Floor(z / 8f));
             Chunk[] chunkBlock;
             if (world.ChunkBlocks.TryGetValue(chunkBlockPosition, out chunkBlock))
             {
-                var chunkIndex = ((ABS(x) % 8) * 8 + ABS(z) % 8);
+                var chunkIndex = (((x & 7) << 3) + (z & 7));
                 if (chunkBlock[chunkIndex] != null)
                     return chunkBlock[chunkIndex];
             }
@@ -393,8 +381,8 @@ namespace ft_vox.Worlds
                 var chunkBlockPosition = chunkBlock.Key;
                 var currentChunks = chunkBlock.Value;
                 
-                aabb.Min = new Vector3(chunkBlockPosition.X * 128, 0, chunkBlockPosition.Z * 128);
-                aabb.Max = new Vector3(chunkBlockPosition.X * 128 + 128, 256, chunkBlockPosition.Z * 128 + 128);
+                aabb.Min = new Vector3(chunkBlockPosition.X << 7, 0, (chunkBlockPosition.Z << 7));
+                aabb.Max = new Vector3((chunkBlockPosition.X << 7) + 128, 256, (chunkBlockPosition.Z << 7) + 128);
                         
                 if (!FrustumCollision.IsInFrustum(frustumPlanes, aabb, cameraPosition))
                     continue;
@@ -403,10 +391,8 @@ namespace ft_vox.Worlds
                 {
                     if (currentChunks[i] != null)
                     {
-                        var x = ((chunkBlockPosition.X + (chunkBlockPosition.X < 0 ? 1 : 0)) * 8 +
-                                (i / 8 * (chunkBlockPosition.X < 0 ? -1 : 1))) * 16;
-                        var z = ((chunkBlockPosition.Z + (chunkBlockPosition.Z < 0 ? 1 : 0)) * 8 +
-                                (i % 8 * (chunkBlockPosition.Z < 0 ? -1 : 1))) * 16;
+                        var x = (chunkBlockPosition.X << 7) + (((i >> 3) & 7) << 4);
+                        var z = (chunkBlockPosition.Z << 7) + ((i & 7) << 4);
                         aabb.Min = new Vector3(x, 0, z);
                         aabb.Max = new Vector3(x + 16, 256, z + 16);
                         
