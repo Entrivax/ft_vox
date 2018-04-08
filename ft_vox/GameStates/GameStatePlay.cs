@@ -195,14 +195,6 @@ namespace ft_vox.GameStates
                             _worldManager.GetChunkAt(_world, closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
                         else
                             Thread.Sleep(1000);
-
-                        foreach (var chunk in chunks)
-                        {
-                            var chunkPos = chunk.Item1;
-                            var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8, chunkPos.Z * 16 + 8);
-                            if ((playerPos2D - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * 16 + 16)
-                                _worldManager.SetChunkToUnload(_world, chunkPos.X, chunkPos.Z);
-                        }
                     }
                 }))
             {
@@ -367,17 +359,26 @@ namespace ft_vox.GameStates
 
         public void Update(double deltaTime)
         {
+            var chunks = _worldManager.GetLoadedChunks(_world);
+            foreach (var chunk in chunks)
+            {
+                var chunkPos = chunk.Item1;
+                var chunkPositionInWorldCoordinates = new Vector2(chunkPos.X * 16 + 8, chunkPos.Z * 16 + 8);
+                if ((_player.Position.Xz - chunkPositionInWorldCoordinates).LengthFast > _renderDistance * 16 + 16)
+                    _worldManager.SetChunkToUnload(_world, chunkPos.X, chunkPos.Z);
+            }
+
             _worldManager.UnloadChunks(_world);
             CleanMeshes();
             _player.Update(deltaTime);
 
-            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.P))
+            if (KeyboardHelper.IsKeyPressed(Key.P))
                 StaticReferences.ParallelMode = !StaticReferences.ParallelMode;
-            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Plus))
+            if (KeyboardHelper.IsKeyPressed(Key.Plus))
                 _renderDistance += 1;
-            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Minus))
+            if (KeyboardHelper.IsKeyPressed(Key.Minus))
                 _renderDistance = _renderDistance > 1 ? _renderDistance - 1 : _renderDistance;
-            if (KeyboardHelper.IsKeyPressed(OpenTK.Input.Key.Escape))
+            if (KeyboardHelper.IsKeyPressed(Key.Escape))
             {
                 OnUnload();
                 _gameStateManager.SetGameState(null);
