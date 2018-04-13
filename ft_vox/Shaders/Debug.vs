@@ -4,8 +4,8 @@ in vec3 _pos;
 in vec3 _pos2;
 in int _type;
 
-out int type;
-out vec3 pos2;
+flat out int type;
+flat out vec3 pos2;
 
 uniform mat4 proj;
 uniform mat4 view;

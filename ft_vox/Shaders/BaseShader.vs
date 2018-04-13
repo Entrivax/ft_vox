@@ -4,8 +4,8 @@ in vec3 _pos;
 in int _blockIdAndVisibilityAndMetadata;
 in int _humidityAndTemperature;
 
-out int blockIdAndVisibilityAndMetadata;
-out int humidityAndTemperature;
+flat out int blockIdAndVisibilityAndMetadata;
+flat out int humidityAndTemperature;
 
 uniform mat4 proj;
 uniform mat4 view;
