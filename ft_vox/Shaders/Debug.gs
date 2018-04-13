@@ -7,8 +7,8 @@ uniform mat4 proj;
 uniform mat4 view;
 uniform vec3 cameraPosition;
 
-in vec3 pos2[];
-in int type[];
+flat in vec3 pos2[];
+flat in int type[];
 
 out vec3 col;
 

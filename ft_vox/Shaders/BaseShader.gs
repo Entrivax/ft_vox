@@ -10,8 +10,8 @@
 layout(points) in;
 layout(triangle_strip, max_vertices = 36) out;
 
-in int blockIdAndVisibilityAndMetadata[];
-in int humidityAndTemperature[];
+flat in int blockIdAndVisibilityAndMetadata[];
+flat in int humidityAndTemperature[];
 
 out vec2 vertexUv;
 out vec3 tint;
