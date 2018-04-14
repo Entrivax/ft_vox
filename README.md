@@ -1,6 +1,6 @@
 # ft_vox
 
-ft_vox is a 42 introduction project to voxel engine, inpired by Minecraft, in which we have to create a ranomly generated world.
+ft_vox is a 42 introduction project to voxel engine, inspired by Minecraft, in which we have to create a randomly generated world.
 
 ## Build
 
