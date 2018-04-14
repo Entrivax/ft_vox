@@ -55,31 +55,71 @@ namespace ft_vox.Helpers
                                 case TypeCode.Int16:
                                     i++;
                                     CheckMissingArgument(i, arguments.Length, isShortName, argAttr);
-                                    property.SetValue(obj, Convert.ToInt16(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    try
+                                    {
+                                        property.SetValue(obj, Convert.ToInt16(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        Console.WriteLine($"\t Error: {(isShortName ? ("-" + argAttr.ShortName) : ("--" + argAttr.Name))} value must be a 2 bytes number");
+                                        throw;
+                                    }
                                     break;
                                     
                                 case TypeCode.Int32:
                                     i++;
                                     CheckMissingArgument(i, arguments.Length, isShortName, argAttr);
-                                    property.SetValue(obj, Convert.ToInt32(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    try
+                                    {
+                                        property.SetValue(obj, Convert.ToInt32(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        Console.WriteLine($"\t Error: {(isShortName ? ("-" + argAttr.ShortName) : ("--" + argAttr.Name))} value must be a 4 bytes number");
+                                        throw;
+                                    }
                                     break;
                                     
                                 case TypeCode.Int64:
                                     i++;
                                     CheckMissingArgument(i, arguments.Length, isShortName, argAttr);
-                                    property.SetValue(obj, Convert.ToInt64(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    try
+                                    {
+                                        property.SetValue(obj, Convert.ToInt64(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        Console.WriteLine($"\t Error: {(isShortName ? ("-" + argAttr.ShortName) : ("--" + argAttr.Name))} value must be a 8 bytes number");
+                                        throw;
+                                    }
                                     break;
                                     
                                 case TypeCode.Single:
                                     i++;
                                     CheckMissingArgument(i, arguments.Length, isShortName, argAttr);
-                                    property.SetValue(obj, Convert.ToSingle(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    try
+                                    {
+                                        property.SetValue(obj, Convert.ToSingle(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        Console.WriteLine($"\t Error: {(isShortName ? ("-" + argAttr.ShortName) : ("--" + argAttr.Name))} value must be a decimal number");
+                                        throw;
+                                    }
                                     break;
                                     
                                 case TypeCode.Double:
                                     i++;
                                     CheckMissingArgument(i, arguments.Length, isShortName, argAttr);
-                                    property.SetValue(obj, Convert.ToDouble(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    try
+                                    {
+                                        property.SetValue(obj, Convert.ToDouble(arguments[i], CultureInfo.InvariantCulture.NumberFormat));
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        Console.WriteLine($"\t Error: {(isShortName ? ("-" + argAttr.ShortName) : ("--" + argAttr.Name))} value must be a decimal number");
+                                        throw;
+                                    }
                                     break;
                                     
                                 case TypeCode.Boolean:

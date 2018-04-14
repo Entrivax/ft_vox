@@ -4,16 +4,35 @@ using ft_vox.Worlds;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mime;
 using ft_vox.Gameplay;
 using ft_vox.GameStates;
+using ft_vox.Helpers;
+using OpenTK.Graphics.OpenGL;
 
 namespace ft_vox
 {
     class Program
     {
+        class CommandLineArguments
+        {
+            [Argument("seed", "s", "World seed")]
+            public long Seed { get; set; }
+        }
+        
         [STAThread]
         static void Main(string[] args)
         {
+            CommandLineArguments arguments = null;
+            try
+            {
+                arguments = CommandLineHelper.Parse<CommandLineArguments>(args);
+            }
+            catch (Exception exception)
+            {
+                return;
+            }
+
             /*try
             {*/
                 var gameStateManager = new GameStateManager();
@@ -55,7 +74,7 @@ namespace ft_vox
                 var worldManager = new WorldManager(blocksProvider, chunkManager, chunkGenerator);
                 var chunkPartManager = new ChunkPartManager(worldManager, chunkManager, blocksProvider);
             
-                var world = new World("world", new Random().Next());
+                var world = new World("world", (arguments?.Seed ?? 0) != 0 ? arguments.Seed : new Random().Next());
                 var window = new MainWindow(gameStateManager, world);
                 
                 gameStateManager.SetGameState(new GameStatePlay(gameStateManager, worldManager, chunkManager, chunkPartManager, blockSelector, blocksProvider, world));
