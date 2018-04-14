@@ -65,6 +65,7 @@
     <Compile Include="Helpers\Worm.cs" />
     <Compile Include="MainWindow.cs" />
     <Compile Include="OpenGL\AABBObjects.cs" />
+    <Compile Include="OpenGL\AnimatedSprite.cs" />
     <Compile Include="OpenGL\BlockInfo.cs" />
     <Compile Include="OpenGL\Blocks3D.cs" />
     <Compile Include="OpenGL\DebugObjects.cs" />
@@ -155,6 +156,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\AabbShader.vs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\AnimatedSprite.fs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\AnimatedSprite.vs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Debug.fs">

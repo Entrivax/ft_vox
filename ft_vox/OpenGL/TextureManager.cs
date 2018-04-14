@@ -1,6 +1,8 @@
-﻿using ft_vox.Properties;
+﻿using System;
+using ft_vox.Properties;
 using OpenTK.Graphics.OpenGL4;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace ft_vox.OpenGL
 {
@@ -13,6 +15,16 @@ namespace ft_vox.OpenGL
             if (_textures.ContainsKey(name))
                 return _textures[name];
             var texture = new Texture(Resources.ResourcesDirectory + name, minFilter, magFilter);
+            _textures.Add(name, texture);
+            return _textures[name];
+        }
+
+        public static Texture Create(string name, Bitmap bitmap, TextureMinFilter minFilter = TextureMinFilter.Linear,
+            TextureMagFilter magFilter = TextureMagFilter.Linear)
+        {
+            if (_textures.ContainsKey(name))
+                throw new Exception("Texture with the same name already exists");
+            var texture = new Texture(bitmap, true, minFilter, magFilter);
             _textures.Add(name, texture);
             return _textures[name];
         }

@@ -6,6 +6,8 @@ using System;
 using OpenTK.Graphics;
 using System.Threading;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using ft_vox.Helpers;
 using ft_vox.GameManaging;
@@ -39,15 +41,22 @@ namespace ft_vox.GameStates
         private Sprite _crosshair;
         private AABBObjects _selectedBlocks;
 
+        private AnimatedSprite _catGifSprite;
+        private AnimatedSprite _catGifSprite2;
+        private AnimatedSprite _catGifSprite3;
+        private AnimatedSprite _catGifSprite4;
+
         private Texture _terrainTexture;
         private Texture _iconsTexture;
         private Texture _skyTexture;
+        private Texture _catTexture;
 
         private Shader _aabbShader;
         private Shader _baseShader;
         private Shader _debugShader;
         private Shader _guiShader;
         private Shader _skyboxShader;
+        private Shader _animatedSpriteShader;
 
         private int _width;
         private int _height;
@@ -84,6 +93,31 @@ namespace ft_vox.GameStates
             _blocksProvider = blocksProvider;
             _selectedBlockId = _blockSelector.GetNextBlock(0);
             _selectedBlockMetadata = 0;
+            Image gifImg = Image.FromFile("./Resources/cat.gif");
+            FrameDimension dimension = new FrameDimension(gifImg.FrameDimensionsList[0]);
+            // Number of frames
+            frameCount = gifImg.GetFrameCount(dimension);
+            // Return an Image at a certain index
+            gifImg.SelectActiveFrame(dimension, 0);
+            Bitmap b = new Bitmap(gifImg.Width * frameCount, gifImg.Height);
+            using (var g = Graphics.FromImage(b))
+                for (int i = 0; i < frameCount; i++)
+                {
+                    gifImg.SelectActiveFrame(dimension, i);
+                    g.DrawImage(gifImg, new Point(gifImg.Width * i, 0));
+                }
+
+            _catTexture = TextureManager.Create("cat", b);
+            
+            _animatedSpriteShader = ShaderManager.Get("AnimatedSprite");
+            _catGifSprite = new AnimatedSprite(_catTexture, Vector2.Zero, new Vector2(60, 60),
+                new Vector2(1f / frameCount, 1), _animatedSpriteShader);
+            _catGifSprite2 = new AnimatedSprite(_catTexture, new Vector2(_width - 60, 0), new Vector2(60, 60),
+                new Vector2(1f / frameCount, 1), _animatedSpriteShader, true);
+            _catGifSprite3 = new AnimatedSprite(_catTexture, new Vector2(0, _height - 60), new Vector2(60, 60),
+                new Vector2(1f / frameCount, 1), _animatedSpriteShader, false, true);
+            _catGifSprite4 = new AnimatedSprite(_catTexture, new Vector2(_width - 60, _height - 60), new Vector2(60, 60),
+                new Vector2(1f / frameCount, 1), _animatedSpriteShader, true, true);
 
             _aabbShader = ShaderManager.GetWithGeometry("AabbShader");
             _baseShader = ShaderManager.GetWithGeometry("BaseShader");
@@ -317,14 +351,35 @@ namespace ft_vox.GameStates
             _guiShader.SetUniformMatrix4("view", false, ref view);
             _crosshair.Draw();
             TextureManager.Disable();
+            _guiShader.Unbind();
+            
+            _animatedSpriteShader.Bind();
+            TextureManager.Use(_catTexture);
+            _animatedSpriteShader.SetUniformMatrix4("proj", false, ref _guiProj);
+            view = Matrix4.CreateTranslation(new Vector3(_catGifSprite.Position) - new Vector3(_width / 2, _height / 2, 0));
+            _animatedSpriteShader.SetUniformMatrix4("view", false, ref view);
+            _catGifSprite.Draw(frame);
+            view = Matrix4.CreateTranslation(new Vector3(_catGifSprite2.Position) - new Vector3(_width / 2, _height / 2, 0));
+            _animatedSpriteShader.SetUniformMatrix4("view", false, ref view);
+            _catGifSprite2.Draw(frame);
+            view = Matrix4.CreateTranslation(new Vector3(_catGifSprite3.Position) - new Vector3(_width / 2, _height / 2, 0));
+            _animatedSpriteShader.SetUniformMatrix4("view", false, ref view);
+            _catGifSprite3.Draw(frame);
+            view = Matrix4.CreateTranslation(new Vector3(_catGifSprite4.Position) - new Vector3(_width / 2, _height / 2, 0));
+            _animatedSpriteShader.SetUniformMatrix4("view", false, ref view);
+            _catGifSprite4.Draw(frame);
+            TextureManager.Disable();
+            _animatedSpriteShader.Unbind();
 
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
-            _guiShader.Unbind();
         }
 
         private int _gpuBlocks = 0;
         private int _visibleChunks = 0;
+        private int frame = 0;
+        private int frameCount = 0;
+        private int delay = 0;
 
         public void OnLoad(int width, int height)
         {
@@ -335,6 +390,10 @@ namespace ft_vox.GameStates
         {
             _width = width;
             _height = height;
+            
+            _catGifSprite2.Position = new Vector2(_width - 60, 0);
+            _catGifSprite3.Position = new Vector2(0, _height - 60);
+            _catGifSprite4.Position = new Vector2(_width - 60, _height - 60);
 
             _proj = _camera.ComputeProjectionMatrix(_width / (float)_height);
             _guiProj = Matrix4.CreateOrthographic(_width, _height, 0, 1);
@@ -359,6 +418,13 @@ namespace ft_vox.GameStates
 
         public void Update(double deltaTime)
         {
+            delay++;
+            if (delay >= 2)
+            {
+                delay = 0;
+                frame = (frame + 1) % frameCount;
+            }
+            
             var chunks = _worldManager.GetLoadedChunks(_world);
             foreach (var chunk in chunks)
             {

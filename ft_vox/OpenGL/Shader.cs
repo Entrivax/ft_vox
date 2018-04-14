@@ -173,6 +173,12 @@ namespace ft_vox.OpenGL
             GL.Uniform4(location, ref value);
         }
 
+        public void SetUniformInt(string attrib, int value)
+        {
+            var location = GetUniformLocation(attrib);
+            GL.Uniform1(location, value);
+        }
+
         public void SetUniformMatrix4(string attrib, bool transpose, ref Matrix4 value)
         {
             var location = GetUniformLocation(attrib);
