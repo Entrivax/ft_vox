@@ -58,6 +58,7 @@
     <Compile Include="Gameplay\Player.cs" />
     <Compile Include="GameStates\GameStatePlay.cs" />
     <Compile Include="GameStates\IGameState.cs" />
+    <Compile Include="Helpers\CommandLineHelper.cs" />
     <Compile Include="Helpers\KeyboardHelper.cs" />
     <Compile Include="Helpers\MouseHelper.cs" />
     <Compile Include="Helpers\PerlinNoiseHelper.cs" />

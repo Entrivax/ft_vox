@@ -3,6 +3,7 @@ using ft_vox.OpenGL;
 using ft_vox.Worlds;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using ft_vox.Gameplay;
 using ft_vox.GameStates;
 
@@ -11,7 +12,7 @@ namespace ft_vox
     class Program
     {
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             /*try
             {*/
