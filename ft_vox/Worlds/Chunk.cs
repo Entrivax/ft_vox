@@ -18,13 +18,15 @@ namespace ft_vox.Worlds
         public byte[] LightMap { get; }
         public ChunkPart[] ChunkParts { get; }
 
-        public Chunk()
+        public Chunk() : this(new byte[16 * 16 * 256], new byte[16 * 16 * 256], new byte[16 * 16], new byte[16 * 16]) { }
+
+        public Chunk(byte[] blocks, byte[] blockMetadatas, byte[] temperatures, byte[] humidity)
         {
-            Blocks = new byte[16 * 16 * 256];
-            BlockMetadatas = new byte[16 * 16 * 256];
-            Temperatures = new byte[16 * 16];
-            Humidity = new byte[16 * 16];
-            var chunkPartsNumber = 256 / 16;
+            Blocks = blocks;
+            BlockMetadatas = blockMetadatas;
+            Temperatures = temperatures;
+            Humidity = humidity;
+            var chunkPartsNumber = 16; // 256 / 16
             ChunkParts = new ChunkPart[chunkPartsNumber];
             for (int i = 0; i < chunkPartsNumber; i++)
             {

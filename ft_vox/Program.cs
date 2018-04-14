@@ -71,7 +71,8 @@ namespace ft_vox
             
                 var chunkManager = new ChunkManager();
                 var chunkGenerator = new ChunkGeneratorSurface(chunkManager);
-                var worldManager = new WorldManager(blocksProvider, chunkManager, chunkGenerator);
+                var chunkLoader = new ChunkLoader("./worlds");
+                var worldManager = new WorldManager(chunkLoader, chunkManager, chunkGenerator);
                 var chunkPartManager = new ChunkPartManager(worldManager, chunkManager, blocksProvider);
             
                 var world = new World("world", (arguments?.Seed ?? 0) != 0 ? arguments.Seed : new Random().Next());

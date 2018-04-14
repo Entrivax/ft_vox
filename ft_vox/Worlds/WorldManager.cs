@@ -8,13 +8,13 @@ namespace ft_vox.Worlds
 {
     class WorldManager : IWorldManager
     {
-        private readonly IBlocksProvider _blocksProvider;
+        private readonly IChunkLoader _chunkLoader;
         private readonly IChunkManager _chunkManager;
         private readonly IChunkGenerator _chunkGenerator;
 
-        public WorldManager(IBlocksProvider blocksProvider, IChunkManager chunkManager, IChunkGenerator chunkGenerator)
+        public WorldManager(IChunkLoader chunkLoader, IChunkManager chunkManager, IChunkGenerator chunkGenerator)
         {
-            _blocksProvider = blocksProvider;
+            _chunkLoader = chunkLoader;
             _chunkManager = chunkManager;
             _chunkGenerator = chunkGenerator;
         }
@@ -102,10 +102,16 @@ namespace ft_vox.Worlds
             var chunkIndex = (((x & 7) << 3) + (z & 7));
             if (chunkBlock[chunkIndex] != null)
                 return chunkBlock[chunkIndex];
+
+            var chunkToReturn = _chunkLoader.LoadChunk(world, position);
+
+            if (chunkToReturn == null)
+            {
+                chunkToReturn = new Chunk();
+                _chunkGenerator.PopulateChunk(world, chunkToReturn, position);
+            }
             
-            var newChunk = new Chunk();
-            _chunkGenerator.PopulateChunk(world, newChunk, position);
-            chunkBlock[chunkIndex] = newChunk;
+            chunkBlock[chunkIndex] = chunkToReturn;
 
             var chunk = DirectGetChunk(world, x - 1, z);
             if (chunk != null)
@@ -119,7 +125,7 @@ namespace ft_vox.Worlds
             chunk = DirectGetChunk(world, x, z + 1);
             if (chunk != null)
                 _chunkManager.Invalidate(chunk);
-            return newChunk;
+            return chunkToReturn;
         }
         
         public bool CastRay(World world, Vector3 origin, Vector3 direction, float maxDistance, out HitInfo hitInfo)
@@ -326,6 +332,7 @@ namespace ft_vox.Worlds
                 if (chunkBlock[chunkIndex] != null)
                 {
                     world.ChunksToUnload.Add(chunkBlock[chunkIndex]);
+                    _chunkLoader.SaveChunk(world, chunkBlock[chunkIndex], new ChunkPosition(x, z));
                     chunkBlock[chunkIndex] = null;
 
                     for (int i = 0; i < chunkBlock.Length; i++)
