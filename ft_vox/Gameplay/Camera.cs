@@ -22,7 +22,7 @@ namespace ft_vox.Gameplay
         
         public Matrix4 ComputeProjectionMatrix(float ratio)
         {
-            return Matrix4.CreatePerspectiveFieldOfView(Fov, ratio, 0.2f, 800f);
+            return Matrix4.CreatePerspectiveFieldOfView(Fov, ratio, 0.1f, 800f);
         }
 
         public Matrix4 ComputeViewMatrix()
