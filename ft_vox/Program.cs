@@ -28,7 +28,7 @@ namespace ft_vox
             {
                 arguments = CommandLineHelper.Parse<CommandLineArguments>(args);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 return;
             }
@@ -36,38 +36,31 @@ namespace ft_vox
             /*try
             {*/
                 var gameStateManager = new GameStateManager();
+                var blockSimples = new[]
+                {
+                    new Tuple<byte, string, bool>(1, "Stone", true),
+                    new Tuple<byte, string, bool>(2, "Grass block", true),
+                    new Tuple<byte, string, bool>(3, "Dirt", true),
+                    new Tuple<byte, string, bool>(4, "Cobblestone", true),
+                    new Tuple<byte, string, bool>(5, "Wooden planks", true),
+                    new Tuple<byte, string, bool>(7, "Bedrock", true),
+                    new Tuple<byte, string, bool>(12, "Sand", true),
+                    new Tuple<byte, string, bool>(13, "Gravel", true),
+                    new Tuple<byte, string, bool>(14, "Gold Ore", true),
+                    new Tuple<byte, string, bool>(15, "Iron Ore", true),
+                    new Tuple<byte, string, bool>(16, "Coal Ore", true),
+                    new Tuple<byte, string, bool>(17, "Oak Wood", true),
+                    new Tuple<byte, string, bool>(24, "Sandstone", true),
+                    new Tuple<byte, string, bool>(31, "Grass", false),
+                    new Tuple<byte, string, bool>(35, "Wool", true),
+                };
                 var blocksProvider = new BlocksProvider();
-                blocksProvider.RegisterBlock(1, new BlockSimple("Stone", true));
-                blocksProvider.RegisterBlock(2, new BlockSimple("Grass block", true));
-                blocksProvider.RegisterBlock(3, new BlockSimple("Dirt", true));
-                blocksProvider.RegisterBlock(4, new BlockSimple("Cobblestone", true));
-                blocksProvider.RegisterBlock(5, new BlockSimple("Wooden planks", true));
-                blocksProvider.RegisterBlock(7, new BlockSimple("Bedrock", true));
-                blocksProvider.RegisterBlock(12, new BlockSimple("Sand", true));
-                blocksProvider.RegisterBlock(13, new BlockSimple("Gravel", true));
-                blocksProvider.RegisterBlock(14, new BlockSimple("Gold Ore", true));
-                blocksProvider.RegisterBlock(15, new BlockSimple("Iron Ore", true));
-                blocksProvider.RegisterBlock(16, new BlockSimple("Coal Ore", true));
-                blocksProvider.RegisterBlock(17, new BlockSimple("Oak Wood", true));
-                blocksProvider.RegisterBlock(24, new BlockSimple("Sandstone", true));
-                blocksProvider.RegisterBlock(31, new BlockSimple("Grass", false));
-                blocksProvider.RegisterBlock(35, new BlockSimple("Wool", false));
                 var blockSelector = new BlockSelector();
-                blockSelector.AddSelectableBlock(1);
-                blockSelector.AddSelectableBlock(2);
-                blockSelector.AddSelectableBlock(3);
-                blockSelector.AddSelectableBlock(4);
-                blockSelector.AddSelectableBlock(5);
-                blockSelector.AddSelectableBlock(7);
-                blockSelector.AddSelectableBlock(12);
-                blockSelector.AddSelectableBlock(13);
-                blockSelector.AddSelectableBlock(14);
-                blockSelector.AddSelectableBlock(15);
-                blockSelector.AddSelectableBlock(16);
-                blockSelector.AddSelectableBlock(17);
-                blockSelector.AddSelectableBlock(24);
-                blockSelector.AddSelectableBlock(31);
-                blockSelector.AddSelectableBlock(35);
+                for (int i = 0; i < blockSimples.Length; i++)
+                {
+                    blocksProvider.RegisterBlock(blockSimples[i].Item1, new BlockSimple(blockSimples[i].Item2, blockSimples[i].Item3));
+                    blockSelector.AddSelectableBlock(blockSimples[i].Item1);
+                }
             
                 var chunkManager = new ChunkManager();
                 var chunkGenerator = new ChunkGeneratorSurface(chunkManager);
