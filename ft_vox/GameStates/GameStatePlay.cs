@@ -167,32 +167,55 @@ namespace ft_vox.GameStates
             };
             _skybox.LoadInGl();
             
-            _loadingThread = new Thread(new ThreadStart(
-                () =>
+            _loadingThread =
+                new Thread(new ThreadStart(() =>
                 {
+                    Func<int, Tuple<int, int>> spiral = (n) =>
+                    {
+                        var k = (int)Math.Ceiling((Math.Sqrt(n) - 1) / 2);
+                        var t = 2 * k + 1;
+                        var m = t * t;
+                        t = t - 1;
+                        var mt = m - t;
+                        if (n > mt)
+                            return new Tuple<int, int>(k - (m - n), -k);
+                        m = mt;
+                        mt = m - t;
+                        if (n > mt)
+                            return new Tuple<int, int>(-k, -k + (m - n));
+                        m = mt;
+                        mt = m - t;
+                        if (n > mt)
+                            return new Tuple<int, int>(-k + (m - n), k);
+                        return new Tuple<int, int>(k, k - (m - n - t));
+                    };
                     while (!_stopLoading)
                     {
                         var chunks = _worldManager.GetLoadedChunks(_world);
                         var playerPosition = _player.Position;
                         var playerPos2D = playerPosition.Xz;
 
-                        var chunkPositionsThatCouldBeLoaded = new List<ChunkPosition>();
-                        for (int x = -_renderDistance; x <= _renderDistance; x++)
-                            for (int z = -_renderDistance; z <= _renderDistance; z++)
+                        ChunkPosition? chunkToLoad = null;
+
+                        var renderDistanceTime2Square = _renderDistance * 2;
+                        renderDistanceTime2Square = renderDistanceTime2Square * renderDistanceTime2Square;
+                        for (var i = 0; i < renderDistanceTime2Square; i++)
+                        {
+                            var pos = spiral(i);
+                            var chunkPositionInLocalCoordinates = new Vector2(pos.Item1, pos.Item2);
+                            if (chunkPositionInLocalCoordinates.LengthFast < _renderDistance)
                             {
-                                var chunkPositionInLocalCoordinates = new Vector2(x, z);
-                                if ((chunkPositionInLocalCoordinates).LengthFast < _renderDistance)
+                                var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + Math.Floor(playerPos2D.X / 16f))), (int)((chunkPositionInLocalCoordinates.Y + Math.Floor(playerPos2D.Y / 16f))));
+                                if (!chunks.Any(chunk => chunk.Item1.Equals(chunkPosition)))
                                 {
-                                    var chunkPosition = new ChunkPosition((int)((chunkPositionInLocalCoordinates.X + Math.Floor(playerPos2D.X / 16f))), (int)((chunkPositionInLocalCoordinates.Y + Math.Floor(playerPos2D.Y / 16f))));
-                                    if (!chunks.Any(chunk => chunk.Item1.Equals(chunkPosition)))
-                                        chunkPositionsThatCouldBeLoaded.Add(chunkPosition);
+                                    chunkToLoad = chunkPosition;
+                                    break;
                                 }
                             }
-
-                        var orderedChunks = chunkPositionsThatCouldBeLoaded.OrderBy(chunkPosition => (new Vector2(chunkPosition.X * 16 + 8, chunkPosition.Z * 16 + 8) - playerPos2D).LengthSquared).Cast<ChunkPosition?>();
-                        var closestChunkToLoad = orderedChunks.FirstOrDefault();
-                        if (closestChunkToLoad != null)
-                            _worldManager.GetChunkAt(_world, closestChunkToLoad.Value.X, closestChunkToLoad.Value.Z);
+                        }
+                        
+                        if (chunkToLoad != null)
+                            _worldManager.GetChunkAt(_world, chunkToLoad.Value.X, chunkToLoad.Value.Z);
                         else
                             Thread.Sleep(1000);
                     }
